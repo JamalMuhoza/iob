@@ -10,7 +10,7 @@ ol{padding-left:20px;margin:0}
 .cam{background:#000;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:200px}
 video{width:100%;height:auto;max-height:62vh;object-fit:contain;display:block}
 .btn{border:0;border-radius:10px;padding:13px 16px;font:600 16px system-ui;background:var(--g);color:#fff;width:100%}
-.btn.sec{background:#fff;color:var(--g);border:2px solid var(--g)}.btn.stop{background:#b23b37}
+.btn.sec{background:#fff;color:var(--g);border:2px solid var(--g)}#done{margin-top:4px}.btn.stop{background:#b23b37}
 .row{display:flex;gap:8px}.row .btn{flex:1}
 .st{padding:10px 12px;border-radius:10px;background:#fff;border:1px solid #d6d2c4}
 .ok{border-color:#2e8b57;background:#eaf6ef}.bad{border-color:#d9534f;background:#fbecec}
@@ -25,6 +25,7 @@ body.on .intro{display:none}
 <button class="btn" id="go">Start phone camera</button>
 <div class="row" id="ctl" hidden><button class="btn sec" id="flip">Switch camera</button><button class="btn stop" id="stop">Stop camera</button></div>
 <div class="st" id="st">Not started.</div>
+<button class="btn sec" id="done">I'm finished: turn off the camera and close</button>
 </main>
 <script>
 (function(){
@@ -35,6 +36,8 @@ function post(o){o.pair=code;return fetch(API,{method:"POST",body:JSON.stringify
 if(!/^[A-Z0-9]{6}$/.test(code)){say("This link is missing its code. Scan the QR code on your computer again.","bad");document.getElementById("go").disabled=true;return}
 function live(){return pc&&pc.connectionState==="connected"}
 function status(){if(ended||stopped)return;say(live()?"Live on your computer"+who+". Keep this page open and the screen on.":"Connecting to your computer"+who+"...",live()?"ok":"")}
+function closePage(msg){stopAll();document.getElementById("ctl").hidden=true;document.getElementById("go").hidden=true;document.getElementById("done").hidden=true;document.body.classList.remove("on");say(msg||"The camera is off. You can close this tab now.","ok");try{window.close()}catch(e){}}
+function stopAll(){ended=true;clearInterval(poll);clearTimeout(snapT);try{pc&&pc.close()}catch(e){}if(stream)stream.getTracks().forEach(function(t){t.stop()});stream=null;v.srcObject=null;try{lock&&lock.release()}catch(e){}}
 function finish(msg){ended=true;clearInterval(poll);clearTimeout(snapT);try{pc&&pc.close()}catch(e){}if(stream)stream.getTracks().forEach(function(t){t.stop()});stream=null;v.srcObject=null;try{lock&&lock.release()}catch(e){}
  document.getElementById("ctl").hidden=true;document.getElementById("go").hidden=true;document.body.classList.remove("on");say(msg+" You can close this page.","ok")}
 function start(){if(stream)stream.getTracks().forEach(function(t){t.stop()});
@@ -55,6 +58,7 @@ function snap(){if(ended||stopped||!stream)return;if(!v.videoWidth){snapT=setTim
  post({action:"phonesnap",b64:c.toDataURL("image/jpeg",0.62).split(",")[1]}).then(function(r){if(r.ended)finish("Your quiz is finished. The camera is off.")}).catch(function(){});
  snapT=setTimeout(snap,live()?30000:10000)}
 document.getElementById("go").onclick=start;
+document.getElementById("done").onclick=function(){closePage()};
 document.getElementById("flip").onclick=function(){facing=facing==="environment"?"user":"environment";start()};
 document.getElementById("stop").onclick=function(){stopped=true;clearInterval(poll);clearTimeout(snapT);try{pc&&pc.close()}catch(e){}pc=null;ansV=0;if(stream)stream.getTracks().forEach(function(t){t.stop()});stream=null;v.srcObject=null;
  document.getElementById("ctl").hidden=true;var g=document.getElementById("go");g.hidden=false;g.textContent="Start phone camera again";say("Camera stopped. If your quiz is still open, your instructor will see that the phone camera stopped.","bad")};
