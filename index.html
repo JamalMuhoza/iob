@@ -489,7 +489,7 @@ html.procon body{overflow:hidden}
 .pistep .pibody video,.pistep .pibody img{width:100%;height:100%;object-fit:contain;display:block}
 .pistep .pibody #picamtx,.pistep .pibody #piscrtx{position:absolute;color:#fff;font-size:14px}
 .piqrbox{background:#fff!important;border:1px solid var(--rule)}
-.piqrbox .pqr{width:auto;height:94%;aspect-ratio:1/1;padding:0;margin:auto;background:#fff}.piqrbox .pqr svg{width:100%;height:100%}
+.piqrbox .pqr{position:absolute;top:3%;bottom:3%;left:3%;right:3%;width:auto;height:auto;padding:0;margin:0;background:#fff;display:flex;align-items:center;justify-content:center}.piqrbox .pqr svg{width:100%;height:100%;max-width:100%;max-height:100%}
 .pibtn{width:100%;margin-top:10px;min-height:42px}
 .pinote{display:flex;align-items:center;justify-content:center;border-radius:8px;background:rgba(0,0,0,.05);font-weight:600;font-size:14px}
 .pistep .pimsg{margin:8px 0 0;font-size:13px}
@@ -3274,7 +3274,7 @@ function phoneOK(){var p=PH;if(!p)return false;return p.live||(p.ageAt!==undefin
 function phoneVideos(){var p=PH;if(!p)return;document.querySelectorAll(".phv").forEach(function(v){if(p.live&&p.ms){if(v.srcObject!==p.ms){v.srcObject=p.ms;v.play&&v.play().catch(function(){})}v.hidden=false}else v.hidden=!!p.img});
  document.querySelectorAll(".phi").forEach(function(im){if(!p.live&&p.img){im.src=p.img;im.hidden=false}else im.hidden=true})}
 function phoneURL(code){return new URL("phone.html",location.href).href.split("#")[0]+"#"+code}
-function qrSVG(text){try{var q=qrcode(0,"M");q.addData(text);q.make();return q.createSvgTag({cellSize:5,margin:2,scalable:true})}catch(e){return '<p class="dim">QR code unavailable. Use the link below.</p>'}}
+function qrSVG(text){try{var q=qrcode(0,"M");q.addData(text);q.make();return q.createSvgTag({cellSize:5,margin:4,scalable:true}).replace(/xMinYMin/,"xMidYMid")}catch(e){return '<p class="dim">QR code unavailable. Use the link below.</p>'}}
 function procIntro(it,Q,back){var noun=it.kind==="exam"?"exam":"quiz";
  var o=document.createElement("div");o.id="procIntro";o.innerHTML='<div class="pibox"><div class="hud">'+esc(it.title)+'</div><h2>You are entering proctored mode</h2>'+
   '<ol class="pirules"><li class="pkey"><b>Make sure your desk area can be seen by the camera at all times.</b></li><li>Quiet, well-lit place. No notes, phones (other than the camera phone) or other people.</li><li>The '+noun+' opens in full screen. Leaving full screen or switching tabs is recorded; the third time, it submits automatically.</li><li>Only the calculator and periodic table built into the '+noun+' may be used'+(sheetKeys(it).length?', plus the reference sheet your instructor provided':'')+'.</li></ol>'+
