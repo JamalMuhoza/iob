@@ -529,6 +529,9 @@ html.procon body{overflow:hidden}
 .tgate{margin-bottom:18px}.tgate p{margin:8px 0}.tgl{display:flex;align-items:center;gap:8px;cursor:pointer}.tgl input{width:18px;height:18px}
 #newunit{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;background:var(--sheet);border:2px solid var(--forest);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 6px 24px rgba(0,0,0,.18);max-width:calc(100vw - 32px)}
 .credits{margin:18px 0 0;font-size:12px;color:var(--dim)}
+.pwbtns{display:flex;flex-direction:column;gap:10px;margin-top:14px}.pwbtns .btn{width:100%}
+.pwnote{margin:12px 0 0;font-weight:600;color:#b42a4b}
+.gqany{margin-right:10px}
 .sldc{font-size:15px}.shwslide .sldivt{font-size:54px}
 .shwctl{position:absolute;right:18px;bottom:14px;display:flex;gap:8px;align-items:center;opacity:.25;transition:opacity .2s;font-family:var(--cond);color:#fff}
 .shwctl:hover{opacity:1}.shwctl button{background:var(--forest);color:#fff;border:1px solid #fff;border-radius:4px;padding:6px 12px;font-family:var(--cond);font-size:15px;cursor:pointer}.shwctl button[disabled]{opacity:.35}
@@ -3225,8 +3228,11 @@ function quizTake(p,it,Q,back){QBUSY=true;p.innerHTML=qHead(it)+qCards(Q,"take")
  quizSubmitWire(p,it,Q,null,function(){QBUSY=false;back()})}
 function quizSubmitWire(box,it,Q,onFinal,done){var bt=box.querySelector(".gqsubmit"),msg=box.querySelector(".gqmsg"),noun=it.kind==="exam"?"exam":"quiz";
  bt.onclick=function(){var ans=collectAns(box,Q),miss=ans.filter(function(a){return a===null}).length;
-  if(miss){msg.textContent="Answer all "+Q.length+" questions before submitting ("+miss+" left).";bt.textContent="Submit";delete bt.dataset.sure;return}
-  if(!bt.dataset.sure){bt.dataset.sure=1;bt.textContent="Yes, submit my answers";msg.textContent="You can take this "+noun+" only once. Click again to submit.";return}
+  var any=box.querySelector(".gqany");if(any)any.remove();
+  if(miss&&!bt.dataset.anyway){msg.textContent=miss+" of "+Q.length+" questions are not answered yet. Go back and answer them, or submit now: unanswered questions get 0 points.";bt.textContent="Submit";delete bt.dataset.sure;
+   var ab=document.createElement("button");ab.type="button";ab.className="btn gqany";ab.textContent="Submit anyway ("+miss+" unanswered)";bt.parentNode.insertBefore(ab,bt);ab.onclick=function(){bt.dataset.anyway=1;ab.remove();bt.onclick()};return}
+  if(!miss)delete bt.dataset.anyway;
+  if(!bt.dataset.sure){bt.dataset.sure=1;bt.textContent="Yes, submit my answers";msg.textContent=(miss?miss+" unanswered question"+(miss>1?"s":"")+" will get 0 points. ":"")+"You can take this "+noun+" only once. Click again to submit.";return}
   if(onFinal){onFinal();return}
   bt.disabled=true;bt.textContent="Submitting...";msg.textContent="";
   sendQuiz(it.id,ans).then(function(r){if(r.ok)done();else{bt.disabled=false;bt.textContent="Yes, submit my answers";msg.textContent=r.error||"Could not submit."}}).catch(function(){bt.disabled=false;bt.textContent="Yes, submit my answers";msg.textContent="Could not reach the class server. Your answers are still here; try again."})}}
@@ -3312,7 +3318,7 @@ function procRun(it,Q,stream,back,scr){var c=it.ch[0],noun=it.kind==="exam"?"exa
  o.innerHTML='<aside class="pcam"><video id="pv" autoplay playsinline muted></video>'+(it.phone?'<div class="pphw"><video class="phv" autoplay playsinline muted></video><img class="phi" alt="" hidden><span id="pphs">Phone camera</span></div>':'')+'<div class="prec"><span class="dot"></span>Recording</div><div id="pstat" class="pstat"></div><p class="pnote">Stay in full screen until you submit.</p></aside>'+
   '<section class="pquiz"><div class="hud">'+esc(it.title)+' &middot; proctored</div><h1>'+(it.ch.length===1?esc((ALLCH.filter(function(x){return x.id===c})[0]||{}).title||""):'Chapters '+it.ch.map(chNo).join(", "))+'</h1><div id="pqbox">'+qHead(it)+qCards(Q,"take")+'<div class="gsub"><span class="gqmsg"></span><button class="btn pri gqsubmit">Submit</button></div></div></section>'+
   '<aside class="ptools"><div class="ptabs"><button data-pt="calc" class="on">Calculator</button><button data-pt="pt">Periodic table</button>'+(sheetKeys(it).length?'<button data-pt="fs">Reference sheet</button>':'')+'</div><div id="ptbody"></div></aside>'+
-  '<div id="pwarn" hidden><div class="pwbox"><h2 id="pwt"></h2><p id="pwp"></p><button class="btn pri" id="pwback">Return to the '+noun+'</button></div></div>';
+  '<div id="pwarn" hidden><div class="pwbox"><h2 id="pwt"></h2><p id="pwp"></p><div class="pwbtns"><button class="btn pri" id="pwback">Return to the '+noun+'</button><button class="btn" id="pwend">Submit now and end the '+noun+'</button></div><p class="pwnote" id="pwnote" hidden></p></div></div>';
  document.body.appendChild(o);document.documentElement.classList.add("procon");
  var v=o.querySelector("#pv");v.srcObject=stream;
  PROC={id:it.id,stream:stream,warn:0,photos:0,log:[],start:Date.now(),last:0,done:false,wasFull:false,phoneLost:false};
@@ -3336,7 +3342,10 @@ function procRun(it,Q,stream,back,scr){var c=it.ch[0],noun=it.kind==="exam"?"exa
  function violation(type){if(PROC.done)return;var now=Date.now();if(now-PROC.last<2500)return;PROC.last=now;PROC.warn++;PROC.log.push({t:now,type:type});stat();snap("exit",type);shot("exit");
   if(PROC.warn>=3){finish(true,type);return}
   o.querySelector("#pwt").textContent="Warning "+PROC.warn+" of 3";o.querySelector("#pwp").textContent=type+". This has been recorded. If it happens 3 times, your "+noun+" is submitted automatically.";o.querySelector("#pwarn").hidden=false}
- o.querySelector("#pwback").onclick=function(){o.querySelector("#pwarn").hidden=true;goFull()};
+ o.querySelector("#pwback").onclick=function(){var e=o.querySelector("#pwend");e.textContent="Submit now and end the "+noun;delete e.dataset.sure;o.querySelector("#pwnote").hidden=true;o.querySelector("#pwarn").hidden=true;goFull()};
+ o.querySelector("#pwend").onclick=function(){var e=o.querySelector("#pwend"),n=o.querySelector("#pwnote");
+  if(!e.dataset.sure){var miss=collectAns(box,Q).filter(function(a){return a===null}).length;e.dataset.sure=1;e.textContent="Yes, submit and end";n.hidden=false;n.textContent="Your "+noun+" will be graded on what you have answered so far"+(miss?" ("+miss+" of "+Q.length+" questions unanswered get 0 points)":"")+". You will not be able to take it again.";return}
+  PROC.log.push({t:Date.now(),type:"Student chose to submit and end"});finish(false,"ended")};
  PROC.onFs=function(){if(document.fullscreenElement||document.webkitFullscreenElement){PROC.wasFull=true}else if(PROC.wasFull)violation("You left full screen")};
  PROC.onVis=function(){if(document.hidden)violation("You switched to another tab or app")};
  PROC.onBlur=function(){setTimeout(function(){if(!document.hasFocus()&&!document.hidden)violation("You clicked outside the "+noun+" window")},300)};
@@ -3348,7 +3357,7 @@ function procRun(it,Q,stream,back,scr){var c=it.ch[0],noun=it.kind==="exam"?"exa
  var box=o.querySelector("#pqbox");
  quizSubmitWire(box,it,Q,function(){finish(false)});
  function finish(auto,why){if(PROC.done)return;PROC.done=true;var ans=collectAns(box,Q);
-  o.querySelector("#pwarn").hidden=false;o.querySelector("#pwt").textContent=auto?"Submitted automatically":"Submitting...";o.querySelector("#pwp").textContent=auto?("You left the "+noun+" screen 3 times ("+why+"). Your answers so far are being submitted."):"Please wait.";o.querySelector("#pwback").hidden=true;
+  o.querySelector("#pwarn").hidden=false;o.querySelector("#pwt").textContent=auto?"Submitted automatically":"Submitting...";o.querySelector("#pwp").textContent=auto?("You left the "+noun+" screen 3 times ("+why+"). Your answers so far are being submitted."):"Please wait.";o.querySelector("#pwback").hidden=true;o.querySelector("#pwend").hidden=true;o.querySelector("#pwnote").hidden=true;
   var extra={log:{proctored:true,phone:!!it.phone,warnings:PROC.warn,events:PROC.log,photos:PROC.photos,start:PROC.start,end:Date.now(),auto:!!auto}};
   function cleanup(){clearInterval(PROC.timer);clearInterval(PROC.ptimer);document.removeEventListener("fullscreenchange",PROC.onFs);document.removeEventListener("webkitfullscreenchange",PROC.onFs);document.removeEventListener("visibilitychange",PROC.onVis);window.removeEventListener("blur",PROC.onBlur);window.removeEventListener("beforeunload",PROC.onUnload);document.removeEventListener("keydown",PROC.onKey);
    phoneStop(true);stream.getTracks().forEach(function(x){x.stop()});if(scr)scr.getTracks().forEach(function(x){x.stop()});if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(function(){});o.remove();document.documentElement.classList.remove("procon");back()}
