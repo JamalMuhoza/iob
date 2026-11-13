@@ -40,11 +40,11 @@ function closePage(msg){stopAll();document.getElementById("ctl").hidden=true;doc
 function stopAll(){ended=true;clearInterval(poll);clearTimeout(snapT);try{pc&&pc.close()}catch(e){}if(stream)stream.getTracks().forEach(function(t){t.stop()});stream=null;v.srcObject=null;try{lock&&lock.release()}catch(e){}}
 function finish(msg){ended=true;clearInterval(poll);clearTimeout(snapT);try{pc&&pc.close()}catch(e){}if(stream)stream.getTracks().forEach(function(t){t.stop()});stream=null;v.srcObject=null;try{lock&&lock.release()}catch(e){}
  document.getElementById("ctl").hidden=true;document.getElementById("go").hidden=true;document.body.classList.remove("on");say(msg+" You can close this page.","ok")}
-function start(){if(stream)stream.getTracks().forEach(function(t){t.stop()});
+var slow=0;function start(){if(stream)stream.getTracks().forEach(function(t){t.stop()});
  navigator.mediaDevices.getUserMedia({video:{facingMode:facing,width:{ideal:1280},height:{ideal:720}},audio:false}).then(function(s){stream=s;v.srcObject=s;document.body.classList.add("on");
   document.getElementById("go").hidden=true;document.getElementById("ctl").hidden=false;stopped=false;wake();
   if(pc){var snd=pc.getSenders()[0];if(snd)snd.replaceTrack(s.getVideoTracks()[0]).catch(function(){})}
-  status();clearInterval(poll);poll=setInterval(check,4000);check();clearTimeout(snapT);snapT=setTimeout(snap,1500)})
+  status();clearInterval(poll);poll=setInterval(function(){if(live()&&(++slow%8))return;check()},4000);check();clearTimeout(snapT);snapT=setTimeout(snap,1500)})
  .catch(function(){say("Camera blocked. Allow the camera for this page in your browser settings, then tap Start again.","bad")})}
 function wake(){try{if(navigator.wakeLock)navigator.wakeLock.request("screen").then(function(l){lock=l}).catch(function(){})}catch(e){}}
 function iceDone(p){return new Promise(function(ok){if(p.iceGatheringState==="complete")return ok();var t=setTimeout(ok,3000);p.addEventListener("icegatheringstatechange",function(){if(p.iceGatheringState==="complete"){clearTimeout(t);ok()}})})}

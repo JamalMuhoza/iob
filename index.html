@@ -532,6 +532,9 @@ html.procon body{overflow:hidden}
 .pwbtns{display:flex;flex-direction:column;gap:10px;margin-top:14px}.pwbtns .btn{width:100%}
 .pwnote{margin:12px 0 0;font-weight:600;color:#b42a4b}
 .gqany{margin-right:10px}
+.gpages.ro .gink{touch-action:auto;pointer-events:none}
+@media(max-width:860px){.tlay{display:block}.tlmain,.tlside{min-width:0}}
+.gqsaved{background:#fff7e0;border-left:4px solid #e0a800;padding:8px 12px;margin:8px 0;border-radius:4px;color:#3a2f00}
 .sldc{font-size:15px}.shwslide .sldivt{font-size:54px}
 .shwctl{position:absolute;right:18px;bottom:14px;display:flex;gap:8px;align-items:center;opacity:.25;transition:opacity .2s;font-family:var(--cond);color:#fff}
 .shwctl:hover{opacity:1}.shwctl button{background:var(--forest);color:#fff;border:1px solid #fff;border-radius:4px;padding:6px 12px;font-family:var(--cond);font-size:15px;cursor:pointer}.shwctl button[disabled]{opacity:.35}
@@ -610,20 +613,23 @@ function db(){return new Promise(function(ok){try{var r=indexedDB.open(DBN,1);r.
 function get(k){return db().then(function(d){return new Promise(function(ok){if(!d)return ok(null);try{var q=d.transaction("kv").objectStore("kv").get(k);q.onsuccess=function(){ok(q.result||null)};q.onerror=function(){ok(null)}}catch(e){ok(null)}})})}
 function put(k,v){return db().then(function(d){if(!d)return;try{d.transaction("kv","readwrite").objectStore("kv").put(v,k)}catch(e){}})}
 window.UAMCLEAR=function(){try{indexedDB.deleteDatabase(DBN)}catch(e){}};
-function call(a,x){var u=window.UAMUSER;return fetch(window.UAMAPI,{method:"POST",body:JSON.stringify(Object.assign({action:a,email:u.e,h:u.h},x||{}))}).then(function(r){return r.json()})}
+function call(a,x){var u=window.UAMUSER,body=JSON.stringify(Object.assign({action:a,email:u.e,h:u.h},x||{})),n=0;function once(){return fetch(window.UAMAPI,{method:"POST",body:body}).then(function(r){return r.json()}).catch(function(e){if(++n>3)throw e;return new Promise(function(ok){setTimeout(ok,700*Math.pow(2,n)+Math.random()*900)}).then(once)})}return once()}
 var REFS=[];
 function mark(o){if(Array.isArray(o)){o.forEach(mark);return}if(!o||typeof o!=="object")return;Object.keys(o).forEach(function(k){var v=o[k];if(typeof v==="string"&&/^i_[a-z0-9_]+\.webp$/.test(v)){REFS.push([o,k,v]);o[k]=PIX}else if(v&&typeof v==="object")mark(v)})}
 function fill(map){REFS.forEach(function(r){if(map[r[2]])r[0][r[1]]=map[r[2]]});var H=(window.SITE||{}).hw||{};Object.keys(H).forEach(function(ch){var w=H[ch];w.pages=w._p.map(function(n,i){return map[n]||w.pages[i]});if(map[w._u])w.url=map[w._u]})}
 function apply(c){window.CHAPTERS=c.chapters;window.SITE=window.SITE||{};SITE.videos=c.videos;SITE.hw=c.hw;Object.keys(SITE.hw).forEach(function(ch){var w=SITE.hw[ch];w._p=w.pages.slice();w._u=w.url;w.url="#";w.pages=w.pages.map(function(){return PIX})});mark(window.CHAPTERS)}
 function overlay(on){var o=document.getElementById("uamload");if(on&&!o){o=document.createElement("div");o.id="uamload";o.innerHTML='<div class="ulbox"><div class="ulspin"></div><p>Loading your course...</p></div>';document.body.appendChild(o)}else if(!on&&o)o.remove()}
-function assets(ver){var chs=(window.CHAPTERS||[]).map(function(c){return c.id}),map={};
- return Promise.all(chs.map(function(ch){var k="a_"+ch;return get(k).then(function(hit){if(hit&&hit.ver===ver)return hit.map;return call("casset",{name:k}).then(function(r){if(!r.ok)return {};var m=JSON.parse(r.text);put(k,{ver:r.ver,map:m});return m})}).then(function(m){Object.assign(map,m);fill(map);document.dispatchEvent(new Event("uam-assets"))}).catch(function(){})}))}
+/* pictures: one bundle per chapter, kept in this browser; fetched one at a time (the chapters of the unit being studied first) so a whole class signing in together does not flood the server */
+var AMAP={},AQ=[],ABUSY=false,AVER="",ADONE={};
+function bundle(ch){var k="a_"+ch;return get(k).then(function(hit){if(hit&&hit.ver===AVER)return hit.map;return call("casset",{name:k}).then(function(r){if(!r.ok)return null;var m=JSON.parse(r.text);put(k,{ver:AVER,map:m});return m})})}
+function pump(){if(ABUSY||!AQ.length)return;ABUSY=true;var ch=AQ.shift();bundle(ch).then(function(m){if(m){ADONE[ch]=1;Object.assign(AMAP,m);fill(AMAP);document.dispatchEvent(new Event("uam-assets"))}}).catch(function(){}).then(function(){ABUSY=false;pump()})}
+window.UAMNEED=function(chs){(chs||[]).slice().reverse().forEach(function(ch){if(ADONE[ch])return;var i=AQ.indexOf(ch);if(i>=0)AQ.splice(i,1);AQ.unshift(ch)});pump()};
+function assets(ver){AVER=String(ver).split(".")[0];(window.CHAPTERS||[]).forEach(function(c){if(AQ.indexOf(c.id)<0)AQ.push(c.id)});pump()}
 function txt(r){if(!r.texts)return r.text;var o={chapters:[],videos:{},hw:{}};r.texts.forEach(function(t){var x=JSON.parse(t);o.chapters=o.chapters.concat(x.chapters);Object.assign(o.videos,x.videos);Object.assign(o.hw,x.hw)});return JSON.stringify(o)}
 window.UAMRECHECK=function(){get("content").then(function(hit){call("content",{ver:hit&&hit.ver}).then(function(r){if(r.ok&&!r.same)put("content",{ver:r.ver,t:txt(r)}).then(function(){document.dispatchEvent(new Event("uam-newunit"))})})}).catch(function(){})};
 window.UAMSTART=function(){
  get("content").then(function(hit){
-  if(hit&&hit.t){apply(JSON.parse(hit.t));window.UAMRUN();assets(hit.ver);
-   call("content",{ver:hit.ver}).then(function(r){if(r.ok&&!r.same){put("content",{ver:r.ver,t:txt(r)}).then(function(){if(!document.getElementById("proc")&&!document.getElementById("procIntro"))location.reload()})}}).catch(function(){});return}
+  if(hit&&hit.t){apply(JSON.parse(hit.t));window.UAMVERCHECK=function(cv){if(!cv||cv===hit.ver)return;call("content",{ver:hit.ver}).then(function(r){if(r.ok&&!r.same){put("content",{ver:r.ver,t:txt(r)}).then(function(){if(window.UAMBUSY&&window.UAMBUSY())document.dispatchEvent(new Event("uam-newunit"));else location.reload()})}}).catch(function(){})};window.UAMRUN();assets(hit.ver);return}
   overlay(true);
   call("content",{}).then(function(r){if(!r.ok){overlay(false);document.body.insertAdjacentHTML("beforeend",'<div id="uamload"><div class="ulbox"><p>'+(r.error||"Could not load the course.")+'</p><button onclick="location.reload()">Try again</button></div></div>');return}
    var tt=txt(r);put("content",{ver:r.ver,t:tt});apply(JSON.parse(tt));overlay(false);window.UAMRUN();assets(r.ver)})
@@ -656,7 +662,7 @@ function th(c){return THEME[c.id]||"t7"}
 function doneCount(c){return c.topics.filter(function(t){return S.done[t.id]}).length}
 function pct(c){return Math.round(100*doneCount(c)/c.topics.length)}
 function topicById(id){return TOPICS.filter(function(t){return t.id===id})[0]}
-function go(v,o){o=o||{};S.view=v;if(o.tid!==undefined)S.tid=o.tid;if(o.tab)S.tab=o.tab;if(o.ch!==undefined)S.ch=o.ch;side.classList.remove("open");render();window.scrollTo(0,0)}
+function go(v,o){o=o||{};if(typeof QBUSY!=="undefined"&&QBUSY&&!(typeof PROC!=="undefined"&&PROC)){if(!window.confirm("Leave this quiz? Your answers so far are saved on this computer, and you can come back to finish before submitting."))return;QBUSY=false}S.view=v;if(o.tid!==undefined)S.tid=o.tid;if(o.tab)S.tab=o.tab;if(o.ch!==undefined)S.ch=o.ch;side.classList.remove("open");render();window.scrollTo(0,0)}
 
 /* ---------- chrome ---------- */
 function modes(){
@@ -670,7 +676,7 @@ function sidebar(){
 }
 function toph(){var t=document.querySelector(".top");if(t)document.documentElement.style.setProperty("--toph",t.offsetHeight+"px")}
 window.addEventListener("resize",toph);
-function render(){var sh=document.querySelector(".shell");if(sh)sh.classList.toggle("noside",["exams","me","hwlist","stu","tstu","tcat","titem","exam","hub"].indexOf(S.view)>=0||(UNITS.length&&S.u==null&&!isAdmin()));var hub=UNITS.length&&S.u==null&&!(typeof isAdmin==="function"&&isAdmin());if(hub)S.view="hub";$("#modes").style.display=hub?"none":"";$("#logosub").textContent=hub||S.u==null||!UNITS[S.u]?"":UNITS[S.u].name;var bg=$("#burger");if(bg)bg.style.display=hub?"none":"";if(hub){hubView();toph();setTimeout(function(){if(typeof sideTog==="function")sideTog()},0);return}modes();sidebar();toph();setTimeout(sideTog,0);var on=side.querySelector(".tl.on");if(on){var r=on.offsetTop-side.clientHeight/2;if(on.offsetTop<side.scrollTop||on.offsetTop>side.scrollTop+side.clientHeight-40)side.scrollTop=Math.max(0,r)}
+function render(){var sh=document.querySelector(".shell");if(sh)sh.classList.toggle("noside",["exams","me","hwlist","stu","tstu","tcat","titem","exam","hub"].indexOf(S.view)>=0||(UNITS.length&&S.u==null&&!isAdmin()));var hub=UNITS.length&&S.u==null&&!(typeof isAdmin==="function"&&isAdmin())&&S.view!=="me";if(hub)S.view="hub";$("#modes").style.display=hub?"none":"";$("#logosub").textContent=hub||S.u==null||!UNITS[S.u]?"":UNITS[S.u].name;var bg=$("#burger");if(bg)bg.style.display=hub?"none":"";if(hub){hubView();toph();setTimeout(function(){if(typeof sideTog==="function")sideTog()},0);return}modes();sidebar();toph();setTimeout(sideTog,0);var on=side.querySelector(".tl.on");if(on){var r=on.offsetTop-side.clientHeight/2;if(on.offsetTop<side.scrollTop||on.offsetTop>side.scrollTop+side.clientHeight-40)side.scrollTop=Math.max(0,r)}
  if(S.view==="home"&&isAdmin()){teacherHome();return}
  var f={home:home,sector:sector,topic:topic,flash:flash,quiz:quiz,track:track,search:search,slides:slidesView,tools:toolsView,exams:examsView,me:meView,stu:stuView,hwlist:hwListView,tstu:studentsView,tcat:tcatView,titem:titemView,exam:examView}[S.view];f();
 }
@@ -683,7 +689,7 @@ function home(){
  h+='<h2 class="sectitle">How to study</h2><ol class="how"><li><b>Slides</b>Go through each chapter\'s slides from the Slides tab at the top.</li><li><b>Topics</b>Open a chapter, then each topic: read it, watch the video, and study the figures and terms.</li><li><b>Practice and grades</b>Answer the practice questions, use Flashcards, and mark each topic in Progress. Then do the chapter homework and take the graded quiz.</li></ol>';
  main.innerHTML=h;if(typeof wireOpen==="function")wireOpen(main);
 }
-function setUnit(i){S.u=i;CH=ALLCH.filter(function(c){return UNITS[i].chs.indexOf(c.id)>=0});TOPICS=[];CH.forEach(function(c){c.topics.forEach(function(t){TOPICS.push(t)})});THEME={};CH.forEach(function(c,k){THEME[c.id]=["t7","t8","t9"][k%3]});S.sch=null;S.sk=0;S.fc=null;S.q=null;S.fcScope="all";S.qzScope="all";try{localStorage.setItem("iobsite:u:"+window.UAMUSER.h,String(i))}catch(e){}}
+function setUnit(i){if(window.UAMNEED)UAMNEED(UNITS[i].chs);S.u=i;CH=ALLCH.filter(function(c){return UNITS[i].chs.indexOf(c.id)>=0});TOPICS=[];CH.forEach(function(c){c.topics.forEach(function(t){TOPICS.push(t)})});THEME={};CH.forEach(function(c,k){THEME[c.id]=["t7","t8","t9"][k%3]});S.sch=null;S.sk=0;S.fc=null;S.q=null;S.fcScope="all";S.qzScope="all";try{localStorage.setItem("iobsite:u:"+window.UAMUSER.h,String(i))}catch(e){}}
 function hubView(){
  var g=typeof GATE==="function"?GATE():{off:true},fin=typeof ITEMS!=="undefined"&&ITEMS.final,fl=fin&&typeof gLock==="function"?gLock("final"):"",fg=typeof G!=="undefined"&&G.final;
  var h='<section class="card glow hero"><div class="hud">Dr. Djamali Muhoza</div><h1 style="margin-top:6px">Introduction to Organic and Biochemistry</h1></section><h2 class="sectitle">Units</h2><div class="ulist">'+
@@ -777,7 +783,7 @@ function meView(){
  var all=qm+hm;
  function stat(v,l){return '<div class="stat"><b>'+v+'</b><span>'+l+'</span></div>'}
  var h='<div class="card glow hero"><div class="hud">My grades</div><h1 style="margin-top:6px">'+esc(window.UAMUSER.n)+'</h1><div class="stats">'+stat(all?pct(qp+hp,all):'--','Course grade')+stat(qm?pct(qp,qm):'--','Quizzes and exams')+stat(hm?pct(hp,hm):'--','Homework')+'</div></div>';
- function row(name,g,fb,go){return '<tr class="sturow" data-open="'+go+'" title="Open"><td><span class="alink">'+name+'</span></td><td>'+(g?fmt(g.score)+' / '+g.total:'Not graded')+'</td><td>'+(g?pct(g.score,g.total):'&ndash;')+'</td><td>'+(g&&g.date?new Date(g.date).toLocaleDateString():'&ndash;')+'</td><td>'+(fb||'')+'</td></tr>'}
+ function row(name,g,fb,go){return '<tr class="sturow" data-open="'+go+'" title="Open"><td><span class="alink">'+name+'</span></td><td>'+(g?fmt(g.score)+' / '+g.total:(go.indexOf('hw:')===0&&((SRV.uploads||{})[go.slice(3)]||[]).length?'Turned in, not graded yet':'Not turned in'))+'</td><td>'+(g?pct(g.score,g.total):'&ndash;')+'</td><td>'+(g&&g.date?new Date(g.date).toLocaleDateString():'&ndash;')+'</td><td>'+(fb||'')+'</td></tr>'}
  h+='<h2 class="sectitle">Grades</h2><div class="tscroll"><table class="ttab gbook"><tr><th>Assignment</th><th>Score</th><th>Percent</th><th>Date</th><th>Feedback</th></tr>'+ALLCH.map(function(c){var hg=HG[c.id];return row('Chapter '+chNo(c.id)+' quiz',G[c.id],'','gq:'+c.id)+row('Chapter '+chNo(c.id)+' homework',hg,hg?((hg.comment?'<div class="hwcm">'+esc(hg.comment)+'</div>':'')+(hg.copy?'<button class="btn pri" data-fb="'+c.id+'">Open graded homework</button>':'')):'','hw:'+c.id)}).join("")+Object.keys(ITEMS).filter(function(k){return ITEMS[k].kind==="exam"&&(G[k]||ITEMS[k].status!=="closed")}).concat(Object.keys(G).filter(function(k){return /^exam/.test(k)&&!ITEMS[k]})).map(function(k){return row((ITEMS[k]&&ITEMS[k].title)||'Exam',G[k],'','ex:'+k)}).join("")+'</table></div>';
  h+='<h2 class="sectitle">Study progress</h2><div class="grid g3">'+ALLCH.map(function(c){var n=c.topics.length,d=doneCount(c),rv=c.topics.filter(function(t){return S.rev[t.id]}).length,hw=G._hw&&G._hw[c.id];return '<div class="card mepc"><div class="hud">Chapter '+chNo(c.id)+'</div><h2>'+esc(c.title)+'</h2><div class="meter"><i style="width:'+Math.round(100*d/n)+'%"></i></div><ul><li><b>'+d+' of '+n+'</b> sections mastered</li><li><b>'+rv+'</b> marked needs review</li><li>Homework: <b>'+(hw?'downloaded '+new Date(hw).toLocaleDateString():'not downloaded')+'</b></li></ul></div>'}).join("")+'</div>';
  main.innerHTML=h;main.querySelectorAll("[data-fb]").forEach(function(b){b.onclick=function(e){e.stopPropagation();viewGradedCopy(b.getAttribute("data-fb"))}});
@@ -813,35 +819,43 @@ function lockHTML(id){var it=ITEMS[id]||{title:id},g=GATE();return '<div class="
 
 /* ---------- class server: sync, uploads, teacher dashboard ---------- */
 function isAdmin(){return window.UAMUSER&&window.UAMUSER.r==="admin"}
-function api(action,extra){var u=window.UAMUSER;return fetch(window.UAMAPI,{method:"POST",body:JSON.stringify(Object.assign({action:action,email:u.e,h:u.h},extra||{}))}).then(function(r){return r.json()})}
+/* every call to the class server: a busy or unreachable server is retried quietly (never for uploads, photos or saves that must not repeat) */
+var NORETRY={upload:1,snap:1,graded:1,hwpdf:1,putcontent:1,grade:1,override:1,resetquiz:1,newitem:1};
+function api(action,extra){var u=window.UAMUSER,body=JSON.stringify(Object.assign({action:action,email:u.e,h:u.h},extra||{})),n=0;
+ function once(){return fetch(window.UAMAPI,{method:"POST",body:body}).then(function(r){return r.json()}).then(function(r){if(r&&r.ok===false&&/do not match the class list/.test(r.error||"")&&action!=="login"){try{localStorage.removeItem(window.UAMSK)}catch(e){}window.name="";location.reload()}return r},function(e){if(NORETRY[action]||++n>3)throw e;return new Promise(function(ok){setTimeout(ok,700*Math.pow(2,n)+Math.random()*900)}).then(once)})}
+ return once()}
 var SRV={quizzes:{},uploads:{},grades:{},progress:null},SRVOK=false;
 var REL={};
 function loadedUnits(){return UNITS.filter(function(u){return ALLCH.some(function(c){return u.chs.indexOf(c.id)>=0})}).length}
 function newUnitCheck(){var g=SRV&&SRV.gate;if(isAdmin()||!g||g.off||!(g.units>loadedUnits())||window._rechk)return;window._rechk=1;if(window.UAMRECHECK)UAMRECHECK()}
-document.addEventListener("uam-newunit",function(){if(document.getElementById("newunit"))return;var g=GATE(),u=UNITS[(g.units||1)-1];var d=document.createElement("div");d.id="newunit";d.innerHTML='<b>'+esc(u?u.name:'A new unit')+' is now open.</b><button class="btn pri" id="nuopen">Open it</button>';document.body.appendChild(d);d.querySelector("#nuopen").onclick=function(){try{localStorage.setItem("iobsite:u:"+window.UAMUSER.h,String((g.units||1)-1))}catch(e){}if(QBUSY||PROC)return;location.reload()}});
+document.addEventListener("uam-newunit",function(){if(document.getElementById("newunit"))return;var g=GATE(),u=UNITS[(g.units||1)-1];var d=document.createElement("div");d.id="newunit";d.innerHTML='<b>'+esc(u?u.name:'A new unit')+' is now open.</b><button class="btn pri" id="nuopen">Open it</button>';document.body.appendChild(d);d.querySelector("#nuopen").onclick=function(){try{localStorage.setItem("iobsite:u:"+window.UAMUSER.h,String((g.units||1)-1))}catch(e){}location.reload()}});
 function applyMine(d,withProgress){SRV=d||SRV;SRVOK=true;if(SRV&&SRV.released)REL=SRV.released;var keep={_hw:G._hw};G={};Object.keys(SRV.quizzes||{}).forEach(function(k){G[k]=SRV.quizzes[k]});G._hw=keep._hw||{};
  G._hwg={};Object.keys(SRV.grades||{}).forEach(function(k){var p=k.split("|");if(p[1]==="homework")G._hwg[p[0]]=SRV.grades[k]});gsave();setTimeout(newUnitCheck,0);
- if(withProgress&&SRV.progress){["done","best","rev","sub"].forEach(function(k){if(SRV.progress[k])S[k]=SRV.progress[k]});try{localStorage.setItem("iobsite:"+window.UAMUSER.h,JSON.stringify({done:S.done,best:S.best,rev:S.rev,sub:S.sub}))}catch(e){}}}
+ if(withProgress&&SRV.progress){var chg=false;["done","best","rev","sub"].forEach(function(k){var a=SRV.progress[k]||{},b=S[k]||{};Object.keys(b).forEach(function(x){if(b[x]&&!a[x])chg=true});S[k]=Object.assign({},a,b);if(k==="best")Object.keys(a).forEach(function(x){if(+a[x]>+(b[x]||0))S[k][x]=a[x]})});if(chg)syncProgress();try{localStorage.setItem("iobsite:"+window.UAMUSER.h,JSON.stringify({done:S.done,best:S.best,rev:S.rev,sub:S.sub}))}catch(e){}}}
 /* one call at start-up; the last answer is kept so pages open instantly next time */
 var BOOTK="iobsite:boot:"+window.UAMUSER.h,QBUSY=false;
 function applyBoot(r,withProgress){ITEMS={};(r.items||[]).forEach(function(i){ITEMS[i.id]=i});ITEMSOK=true;REL=r.released||{};if(r.data)applyMine(r.data,withProgress)}
 function safeRender(){if(QBUSY||PROC||document.getElementById("procIntro")||document.getElementById("grader"))return;var a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return;render()}
 function loadMine(){try{var c=JSON.parse(localStorage.getItem(BOOTK)||"null");if(c)applyBoot(c,false)}catch(e){}
- api("boot").then(function(r){if(!r.ok)return;try{localStorage.setItem(BOOTK,JSON.stringify(r))}catch(e){}applyBoot(r,true);safeRender()}).catch(function(){})}
-var _pt=null;function syncProgress(){if(isAdmin())return;clearTimeout(_pt);_pt=setTimeout(function(){api("progress",{progress:{done:S.done,best:S.best,rev:S.rev,sub:S.sub}}).catch(function(){})},2500)}
+ api("boot").then(function(r){if(!r.ok)return;try{localStorage.setItem(BOOTK,JSON.stringify(r))}catch(e){}applyBoot(r,true);safeRender();if(window.UAMVERCHECK)UAMVERCHECK(r.cver)}).catch(function(){})}
+var _pt=null,_pdirty=false;function syncProgress(){if(isAdmin())return;_pdirty=true;clearTimeout(_pt);_pt=setTimeout(function(){_pdirty=false;api("progress",{progress:{done:S.done,best:S.best,rev:S.rev,sub:S.sub}}).catch(function(){_pdirty=true})},2500)}
+function flushProgress(){if(!_pdirty||isAdmin())return;_pdirty=false;clearTimeout(_pt);var u=window.UAMUSER;try{fetch(window.UAMAPI,{method:"POST",keepalive:true,body:JSON.stringify({action:"progress",email:u.e,h:u.h,progress:{done:S.done,best:S.best,rev:S.rev,sub:S.sub}})}).catch(function(){})}catch(e){}}
+window.addEventListener("pagehide",flushProgress);document.addEventListener("visibilitychange",function(){if(document.hidden)flushProgress()});
+window.addEventListener("beforeunload",function(e){if(QBUSY&&!PROC){e.preventDefault();e.returnValue="";return ""}});
+window.UAMBUSY=function(){return !!(QBUSY||PROC||UPBUSY||document.getElementById("procIntro")||document.getElementById("grader"))};var UPBUSY=false;
 function gsum(quizzes,grades){var qp=0,qm=0,hp=0,hm=0;Object.keys(quizzes||{}).forEach(function(k){qp+=quizzes[k].score;qm+=quizzes[k].total});Object.keys(grades||{}).forEach(function(k){if(k.split("|")[1]==="homework"){hp+=grades[k].score;hm+=grades[k].total}});return {qp:qp,qm:qm,hp:hp,hm:hm,all:qm+hm?(qp+hp)/(qm+hm):null}}
 function fmtDate(t){return t?new Date(t).toLocaleDateString():"&ndash;"}
 /* homework uploads inside the Homework tab */
 function hwUploadHTML(c,gt){var up=(SRV.uploads||{})[c]||[],gr=(SRV.grades||{})[c+"|homework"];gt=gt||{};
  return '<div class="card hwup"><div class="hud">Turn in your homework</div>'+(gt.due?'<p><b>Due '+dueTxt(gt.due)+'</b></p>':'')+(gt.lock?'<p class="gqmsg">'+esc(gt.lock)+'</p>':'<p>Upload your completed homework as a PDF or photos (up to 15 MB each). You can upload more than one file.</p>'+
  (gt.code?'<label class="qcode">Access code from your instructor <input type="text" id="hwcode" autocomplete="off" spellcheck="false"></label>':'')+
- '<label class="btn pri hwpick"><input type="file" id="hwfile" accept=".pdf,image/*" multiple hidden>Choose file to upload</label><span id="hwmsg" class="hwmsg"></span>')+
+ '<label class="btn pri hwpick"><input type="file" id="hwfile" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" multiple hidden>Choose file to upload</label><span id="hwmsg" class="hwmsg"></span>')+
  (up.length?'<ul class="hwlist">'+up.map(function(u){return '<li><b>'+esc(u.name)+'</b> &middot; uploaded '+new Date(u.date).toLocaleString()+'</li>'}).join("")+'</ul>':'<p class="dim">Nothing uploaded yet.</p>')+
  '<div class="hwgr">'+(gr?'Grade: <b>'+fmt(gr.score)+' / '+gr.total+'</b> ('+pct(gr.score,gr.total)+')'+(gr.comment?'<div class="hwcm"><b>Comment:</b> '+esc(gr.comment)+'</div>':'')+(gr.copy?'<button class="btn pri" id="hwviewcopy">Open my graded homework (feedback)</button>':''):(up.length?'Grade: <b>waiting for grading</b>':''))+'</div></div>'}
 function hwUploadWire(p,c,redo){var f=p.querySelector("#hwfile"),msg=p.querySelector("#hwmsg"),vb0=p.querySelector("#hwviewcopy");if(vb0)vb0.onclick=function(){viewGradedCopy(c)};if(!f)return;
- f.onchange=function(){var files=[].slice.call(f.files);if(!files.length)return;var big=files.filter(function(x){return x.size>15*1024*1024});if(big.length){msg.textContent=big[0].name+" is larger than 15 MB.";return}
-  var i=0;function next(){if(i>=files.length){redo();return}var x=files[i++];msg.textContent="Uploading "+x.name+"...";shrinkImage(x).then(function(sm){if(sm){send(sm.name,sm.mime,sm.b64);return}var rd=new FileReader();rd.onload=function(){send(x.name,x.type||"application/octet-stream",String(rd.result).split(",")[1])};rd.readAsDataURL(x)});
-   function send(fn,mt,b64){api("upload",{chapter:c,filename:fn,mime:mt,b64:b64,code:(p.querySelector("#hwcode")||{}).value||""}).then(function(r){if(r.ok){applyMine(r.data);next()}else msg.textContent=r.error||"Upload failed."}).catch(function(){msg.textContent="Could not reach the class server. Try again."})}}next()}
+ f.onchange=function(){var files=[].slice.call(f.files);if(!files.length)return;if(UPBUSY)return;var big=files.filter(function(x){return x.size>15*1024*1024});if(big.length){msg.textContent=big[0].name+" is larger than 15 MB.";return}var bad=files.filter(function(x){return !/^(application\/pdf|image\/(jpeg|png|webp))$/.test(x.type)&&!/\.(pdf|jpe?g|png|webp)$/i.test(x.name)});if(bad.length){msg.textContent=bad[0].name+" cannot be used. Upload a PDF, or photos saved as JPG or PNG (on an iPhone: Settings, Camera, Formats, Most Compatible).";f.value="";return}UPBUSY=true;f.disabled=true;
+  var i=0;function fail(t){UPBUSY=false;f.disabled=false;f.value="";msg.textContent=t+(i>1?" The first "+(i-1)+" file"+(i>2?"s were":" was")+" uploaded; choose only the rest.":"")}function next(){if(i>=files.length){UPBUSY=false;redo();return}var x=files[i++];msg.textContent="Uploading "+x.name+"...";shrinkImage(x).then(function(sm){if(sm){send(sm.name,sm.mime,sm.b64);return}var rd=new FileReader();rd.onload=function(){send(x.name,x.type||(/\.pdf$/i.test(x.name)?"application/pdf":/\.png$/i.test(x.name)?"image/png":/\.webp$/i.test(x.name)?"image/webp":"image/jpeg"),String(rd.result).split(",")[1])};rd.readAsDataURL(x)});
+   function send(fn,mt,b64){api("upload",{chapter:c,filename:fn,mime:mt,b64:b64,code:(p.querySelector("#hwcode")||{}).value||""}).then(function(r){if(r.ok){applyMine(r.data);next()}else fail(r.error||"Upload failed.")}).catch(function(){fail("Could not reach the class server. Try again.")})}}next()}
  var vb=p.querySelector("#hwviewcopy");if(vb)vb.onclick=function(){viewGradedCopy(c)}}
 /* ---------- teacher dashboard ---------- */
 var ROSTERC=null;
@@ -3203,8 +3217,16 @@ function qCards(Q,mode,att){return Q.map(function(q,i){var head='<div class="gqn
   var cr=(att.cred||[])[i]||0;return '<div class="card gq">'+head+box+'<div class="gsar '+(cr>=1?'right':cr>0?'part':'wrong')+'"><b>'+(cr>=1?'Correct':cr>0?'Partly correct':'Not correct')+' &middot; '+fmt(cr)+' / 1</b>'+(q.model?'<div class="gsam"><span>Sample answer:</span> '+qT(q,q.model)+'</div>':'')+'</div></div>'}
  return '<div class="card gq">'+head+(q.o||[]).map(function(o,j){var cls="";if(mode==="rel"){if(j===q.a)cls=" right";else if(a===j)cls=" wrong"}else if(mode==="held"&&a===j)cls=" mine";
   return '<label class="gqo'+cls+'"><input type="radio" name="gq'+i+'" value="'+j+'"'+(mode!=="take"?' disabled':'')+(mode!=="take"&&a===j?' checked':'')+'> <b>'+LET[j]+'.</b> '+qT(q,o)+'</label>'}).join("")+'</div>'}).join("")}
+/* answers in progress are kept in this browser until the server confirms the submit */
+var DRAFTOFF={};
+function draftKey(id){return "iobsite:qa:"+window.UAMUSER.h+":"+id}
+function draftGet(id){try{return JSON.parse(localStorage.getItem(draftKey(id))||"null")}catch(e){return null}}
+function draftSet(id,o){try{localStorage.setItem(draftKey(id),JSON.stringify(o))}catch(e){}}
+function draftDel(id){try{localStorage.removeItem(draftKey(id))}catch(e){}}
+function draftWire(box,it,Q,extra){var d=draftGet(it.id);if(d&&d.ans&&d.n===Q.length)d.ans.forEach(function(a,i){if(a===null||a===undefined)return;var q=Q[i];if(!q)return;if(q.t==="sa"){var el=box.querySelector('textarea[name="gq'+i+'"]');if(el)el.value=a}else{var r=box.querySelector('input[name="gq'+i+'"][value="'+a+'"]');if(r)r.checked=true}});
+ var t=null;function save(){if(DRAFTOFF[it.id])return;clearTimeout(t);t=setTimeout(function(){if(DRAFTOFF[it.id])return;draftSet(it.id,Object.assign({ans:collectAns(box,Q),n:Q.length,t:Date.now()},extra?extra():{}))},400)}box.addEventListener("input",save);box.addEventListener("change",save);return {save:save,had:!!(d&&d.ans&&d.n===Q.length),d:d}}
 function collectAns(box,Q){return Q.map(function(q,i){if(q.t==="sa"){var el=box.querySelector('textarea[name="gq'+i+'"]');var v=el?el.value.trim():"";return v||null}var r=box.querySelector('input[name="gq'+i+'"]:checked');return r?+r.value:null})}
-function sendQuiz(id,ans,extra){return api("quiz",Object.assign({chapter:id,ans:ans},extra||{})).then(function(r){if(r.ok)applyMine(r.data);return r})}
+function sendQuiz(id,ans,extra){DRAFTOFF[id]=true;return api("quiz",Object.assign({chapter:id,ans:ans},extra||{})).then(function(r){if(r.ok){draftDel(id);applyMine(r.data);return r}if(/already submitted/.test(r.error||""))return api("mine").then(function(m){draftDel(id);if(m.ok)applyMine(m.data);return {ok:true}});DRAFTOFF[id]=false;return r},function(e){DRAFTOFF[id]=false;throw e})}
 function quizPane(p,id,back){p.innerHTML='<p class="dim">Loading...</p>';
  itemFor(id,function(it){if(!it){p.innerHTML='<p class="gqmsg">Could not reach the class server. Check your connection and reload.</p>';return}
   var noun=it.kind==="exam"?"exam":"quiz";
@@ -3222,9 +3244,10 @@ function quizPane(p,id,back){p.innerHTML='<p class="dim">Loading...</p>';
   var rules=it.proctor?'<li><b>Make sure your desk area can be seen by the camera at all times.</b></li>'+(it.phone?'<li>You will also connect your phone as a second camera by scanning a QR code. Have your phone charged and nearby.</li>':'')+'<li>You will share your entire screen. Use a computer with Chrome, Edge or Firefox.</li>'+'<li>The '+noun+' opens in full screen with your camera on.</li><li>Leaving full screen or switching to another tab or app is recorded. The third time, the '+noun+' submits automatically.</li><li>A calculator and periodic table are built in'+(sheetKeys(it).length?', plus the reference sheet your instructor provided':'')+'.</li><li>One attempt. No time limit.</li>':'<li>One attempt. Answer every question, then submit.</li><li>No time limit.</li>';
   p.innerHTML=h+'<div class="card qgate procstart"><div class="hud">'+(it.proctor?'Proctored':'Before you start')+'</div><h2>'+(it.proctor?'This '+noun+' is taken in proctored mode':'Ready to start?')+'</h2><ul>'+rules+'</ul>'+(it.due?'<p>Due '+dueTxt(it.due)+'</p>':'')+(st==="code"?'<label class="qcode">Access code from your instructor <input type="text" id="qcode" autocomplete="off" spellcheck="false"></label>':'')+'<div class="pirow"><span class="gqmsg" id="qgmsg"></span><button class="btn pri" id="qbegin">'+(it.proctor?'Begin proctored ':'Start ')+noun+'</button></div></div>';
   var bb=p.querySelector("#qbegin");bb.onclick=function(){var code=(p.querySelector("#qcode")||{}).value||"",lbl=bb.textContent;bb.disabled=true;bb.textContent="Loading...";
-   api("quizstart",{id:id,code:code}).then(function(r){bb.disabled=false;bb.textContent=lbl;if(!r.ok){p.querySelector("#qgmsg").textContent=r.error;return}
-    if(it.proctor)procIntro(it,r.questions,back);else quizTake(p,it,r.questions,back)}).catch(function(){bb.disabled=false;bb.textContent=lbl;p.querySelector("#qgmsg").textContent="Could not reach the class server."})}})}
-function quizTake(p,it,Q,back){QBUSY=true;p.innerHTML=qHead(it)+qCards(Q,"take")+'<div class="gsub"><span class="gqmsg"></span><button class="btn pri gqsubmit">Submit</button></div>';
+   api("quizstart",{id:id,code:code}).then(function(r){bb.disabled=false;bb.textContent=lbl;if(!r.ok){p.querySelector("#qgmsg").textContent=r.error;return}DRAFTOFF[id]=false;
+    if(it.proctor)procIntro(it,r.questions,back,r.pair);else quizTake(p,it,r.questions,back)}).catch(function(){bb.disabled=false;bb.textContent=lbl;p.querySelector("#qgmsg").textContent="Could not reach the class server."})}})}
+function quizTake(p,it,Q,back){QBUSY=true;p.innerHTML=qHead(it)+'<p class="gqsaved" id="gqsaved" hidden></p>'+qCards(Q,"take")+'<div class="gsub"><span class="gqmsg"></span><button class="btn pri gqsubmit">Submit</button></div>';
+ var dw=draftWire(p,it,Q);if(dw.had){var sv=p.querySelector("#gqsaved");sv.hidden=false;sv.textContent="Your earlier answers were restored. Check them, finish the rest, then submit."}
  quizSubmitWire(p,it,Q,null,function(){QBUSY=false;back()})}
 function quizSubmitWire(box,it,Q,onFinal,done){var bt=box.querySelector(".gqsubmit"),msg=box.querySelector(".gqmsg"),noun=it.kind==="exam"?"exam":"quiz";
  bt.onclick=function(){var ans=collectAns(box,Q),miss=ans.filter(function(a){return a===null}).length;
@@ -3247,8 +3270,8 @@ function examView(){main.innerHTML='<button class="backu" data-m="exams">&larr; 
 function hwGate(c){var it=ITEMS["hw:"+c];if(!it)return {lock:"",code:false,due:null};
  return {lock:it.status==="closed"?"Uploads are closed for this homework.":it.status==="past"?"The deadline passed "+dueTxt(it.due)+". Uploads are closed.":"",code:it.status==="code",due:it.due}}
 function hwFileHTML(c){var it=ITEMS["hw:"+c];if(it&&it.fver)return '<div id="hwrep"><p class="dim">Loading the homework file...</p></div>';return hwHTML(c)}
-function hwFileWire(p,c){var it=ITEMS["hw:"+c],box=p.querySelector("#hwrep");if(!box||!it)return;
- api("hwget",{id:"hw:"+c}).then(function(r){if(!r.ok){box.innerHTML=hwHTML(c);return}var bytes=b64bytes(r.b64),url=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));
+var HWC={};function hwFileWire(p,c){var it=ITEMS["hw:"+c],box=p.querySelector("#hwrep");if(!box||!it)return;var ck=c+":"+it.fver;
+ (HWC[ck]?Promise.resolve(HWC[ck]):api("hwget",{id:"hw:"+c}).then(function(r){if(r.ok)HWC[ck]=r;return r})).then(function(r){if(!r.ok){box.innerHTML=hwHTML(c);return}var bytes=b64bytes(r.b64),url=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));
   box.innerHTML='<div class="hwbar"><div><div class="hud">Chapter '+chNo(c)+' homework</div><b>'+esc(r.name)+'</b><span id="hwpn"></span></div><a class="btn pri" download="'+esc(r.name)+'" href="'+url+'" data-hwdl="'+c+'">Download PDF</a></div><div class="hwpages" id="hwpg"></div>';
   filePages("application/pdf",r.b64,r.name).then(function(cs){box.querySelector("#hwpn").textContent=cs.length+" pages";cs.forEach(function(cv){var im=new Image();im.src=cv.toDataURL("image/jpeg",0.85);im.alt="Homework page";box.querySelector("#hwpg").appendChild(im)})}).catch(function(){box.querySelector("#hwpg").innerHTML='<p class="dim">Download the PDF to view it.</p>'})}).catch(function(){box.innerHTML=hwHTML(c)})}
 /* teacher: show a submitted quiz with the key and credit overrides */
@@ -3263,7 +3286,7 @@ function tqLoad(box,id,g,em,after){box.innerHTML='<p class="dim">Loading answers
 /* ---------- proctored mode: webcam + phone camera, full screen, built-in tools ---------- */
 var PROC=null,PH=null;
 /* phone camera: live video straight from the phone (WebRTC, signalled through the class server), with photos as a fallback */
-function phoneStart(it,onState){phoneStop(false);PH={id:it.id,v:0,pc:null,ms:null,live:false,onState:onState,snapAsk:0};phoneOffer();PH.timer=setInterval(phonePoll,2500);phonePoll()}
+function phoneStart(it,onState){phoneStop(false);PH={id:it.id,v:0,pc:null,ms:null,live:false,onState:onState,snapAsk:0};phoneOffer();PH.timer=setInterval(phonePoll,3000);phonePoll()}
 function phoneStop(end){var p=PH;if(!p)return;PH=null;clearInterval(p.timer);try{p.pc&&p.pc.close()}catch(e){}if(end)api("pairend",{id:p.id}).catch(function(){})}
 function iceDone(pc){return new Promise(function(ok){if(pc.iceGatheringState==="complete")return ok();var t=setTimeout(ok,3000);pc.addEventListener("icegatheringstatechange",function(){if(pc.iceGatheringState==="complete"){clearTimeout(t);ok()}})})}
 function phoneOffer(){var p=PH;if(!p||!window.RTCPeerConnection)return;try{p.pc&&p.pc.close()}catch(e){}
@@ -3275,13 +3298,13 @@ function phoneOffer(){var p=PH;if(!p||!window.RTCPeerConnection)return;try{p.pc&
 function phonePoll(){var p=PH;if(!p)return;var now=Date.now();
  if(p.pc&&!p.answered&&!p.asking){p.asking=true;api("rtcget",{id:p.id,v:p.v}).then(function(r){p.asking=false;if(PH!==p||!r.ok||!r.answer||p.answered||r.answer.v!==p.v)return;p.answered=true;p.ansAt=Date.now();p.pc.setRemoteDescription({type:"answer",sdp:r.answer.sdp}).catch(function(){})}).catch(function(){p.asking=false})}
  if(p.answered&&!p.live&&((p.lostAt&&now-p.lostAt>8000)||(!p.lostAt&&now-p.ansAt>20000)))phoneOffer();
- if(now-p.snapAsk>(p.live?20000:8000)){p.snapAsk=now;api("phonelast",{id:p.id}).then(function(r){if(PH!==p||!r.ok)return;if(r.t){p.age=r.now-r.t;p.ageAt=Date.now();p.img=r.img}phoneVideos();p.onState&&p.onState()}).catch(function(){})}}
+ if(now-p.snapAsk>(p.live?60000:8000)){p.snapAsk=now;api("phonelast",{id:p.id}).then(function(r){if(PH!==p||!r.ok)return;if(r.t){p.age=r.now-r.t;p.ageAt=Date.now();p.img=r.img}phoneVideos();p.onState&&p.onState()}).catch(function(){})}}
 function phoneOK(){var p=PH;if(!p)return false;return p.live||(p.ageAt!==undefined&&p.age+(Date.now()-p.ageAt)<45000)}
 function phoneVideos(){var p=PH;if(!p)return;document.querySelectorAll(".phv").forEach(function(v){if(p.live&&p.ms){if(v.srcObject!==p.ms){v.srcObject=p.ms;v.play&&v.play().catch(function(){})}v.hidden=false}else v.hidden=!!p.img});
  document.querySelectorAll(".phi").forEach(function(im){if(!p.live&&p.img){im.src=p.img;im.hidden=false}else im.hidden=true})}
 function phoneURL(code){return new URL("phone.html",location.href).href.split("#")[0]+"#"+code}
 function qrSVG(text){try{var q=qrcode(0,"M");q.addData(text);q.make();return q.createSvgTag({cellSize:5,margin:4,scalable:true}).replace(/xMinYMin/,"xMidYMid")}catch(e){return '<p class="dim">QR code unavailable. Use the link below.</p>'}}
-function procIntro(it,Q,back){var noun=it.kind==="exam"?"exam":"quiz";
+function procIntro(it,Q,back,pair){var noun=it.kind==="exam"?"exam":"quiz";
  var o=document.createElement("div");o.id="procIntro";o.innerHTML='<div class="pibox"><div class="hud">'+esc(it.title)+'</div><h2>You are entering proctored mode</h2>'+
   '<ol class="pirules"><li class="pkey"><b>Make sure your desk area can be seen by the camera at all times.</b></li><li>Quiet, well-lit place. No notes, phones (other than the camera phone) or other people.</li><li>The '+noun+' opens in full screen. Leaving full screen or switching tabs is recorded; the third time, it submits automatically.</li><li>Only the calculator and periodic table built into the '+noun+' may be used'+(sheetKeys(it).length?', plus the reference sheet your instructor provided':'')+'.</li></ol>'+
   '<p class="pireq">Complete all '+(it.phone?'three':'two')+' steps to start.</p>'+
@@ -3300,7 +3323,7 @@ function procIntro(it,Q,back){var noun=it.kind==="exam"?"exam":"quiz";
  o.querySelector("#piok").onchange=ready;
  o.querySelector("#picamon").onclick=function(){if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){msg.textContent="This browser cannot use a camera. Use Chrome, Edge, Safari or Firefox.";return}
   msg.textContent="Allow camera access when your browser asks.";navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},facingMode:"user"},audio:false}).then(function(s){stream=s;v.srcObject=s;o.querySelector("#picamtx").textContent="";msg.textContent="Camera is on. Make sure your face and desk are clearly visible.";o.querySelector("#picamon").textContent="Camera on";o.querySelector("#picamon").disabled=true;ready()}).catch(function(){msg.textContent="Camera blocked. Click the camera icon in the address bar, allow the camera, and try again."})};
- if(it.phone){api("pairstart",{id:it.id}).then(function(r){if(closed)return;if(!r.ok){o.querySelector("#pqr").innerHTML='<p class="gqmsg">'+esc(r.error)+'</p>';return}var url=phoneURL(r.code);o.querySelector("#pqr").innerHTML=qrSVG(url);o.querySelector("#plink").textContent=url;
+ if(it.phone){(pair?Promise.resolve({ok:true,code:pair}):api("pairstart",{id:it.id})).then(function(r){if(closed)return;if(!r.ok){o.querySelector("#pqr").innerHTML='<p class="gqmsg">'+esc(r.error)+'</p>';return}var url=phoneURL(r.code);o.querySelector("#pqr").innerHTML=qrSVG(url);o.querySelector("#plink").textContent=url;
    phoneStart(it,function(){if(closed)return;var ok=phoneOK();o.querySelector("#pqr").hidden=!!ok;var qb=o.querySelector(".piqrbox");if(qb)qb.classList.toggle("on",!!ok);var pn=o.querySelector("#pist2 .pinote");if(pn)pn.textContent=ok?"Phone connected":"Scan the code with your phone";o.querySelector("#pphmsg").innerHTML=ok?(PH.live?'<b>Phone camera connected (live).</b> Check that it shows you and your desk.':'<b>Phone camera connected.</b> The picture updates every few seconds.'):'Open the link on your phone and tap <b>Start phone camera</b>.';if(ok!==phoneOK.last){phoneOK.last=ok;phoneOKv=ok;ready()}})}).catch(function(){o.querySelector("#pqr").innerHTML='<p class="gqmsg">Could not reach the class server.</p>'})}
 
  function shut(){closed=true}
@@ -3318,28 +3341,30 @@ function procRun(it,Q,stream,back,scr){var c=it.ch[0],noun=it.kind==="exam"?"exa
  o.innerHTML='<aside class="pcam"><video id="pv" autoplay playsinline muted></video>'+(it.phone?'<div class="pphw"><video class="phv" autoplay playsinline muted></video><img class="phi" alt="" hidden><span id="pphs">Phone camera</span></div>':'')+'<div class="prec"><span class="dot"></span>Recording</div><div id="pstat" class="pstat"></div><p class="pnote">Stay in full screen until you submit.</p></aside>'+
   '<section class="pquiz"><div class="hud">'+esc(it.title)+' &middot; proctored</div><h1>'+(it.ch.length===1?esc((ALLCH.filter(function(x){return x.id===c})[0]||{}).title||""):'Chapters '+it.ch.map(chNo).join(", "))+'</h1><div id="pqbox">'+qHead(it)+qCards(Q,"take")+'<div class="gsub"><span class="gqmsg"></span><button class="btn pri gqsubmit">Submit</button></div></div></section>'+
   '<aside class="ptools"><div class="ptabs"><button data-pt="calc" class="on">Calculator</button><button data-pt="pt">Periodic table</button>'+(sheetKeys(it).length?'<button data-pt="fs">Reference sheet</button>':'')+'</div><div id="ptbody"></div></aside>'+
-  '<div id="pwarn" hidden><div class="pwbox"><h2 id="pwt"></h2><p id="pwp"></p><div class="pwbtns"><button class="btn pri" id="pwback">Return to the '+noun+'</button><button class="btn" id="pwend">Submit now and end the '+noun+'</button></div><p class="pwnote" id="pwnote" hidden></p></div></div>';
+  '<div id="pwarn" hidden><div class="pwbox"><h2 id="pwt"></h2><p id="pwp"></p><div class="pwbtns"><button class="btn pri" id="pwback">Return to the '+noun+'</button><button class="btn" id="pwend">Submit now and end the '+noun+'</button></div><button class="btn pri" id="pwretry" hidden>Try again</button><p class="pwnote" id="pwnote" hidden></p></div></div>';
  document.body.appendChild(o);document.documentElement.classList.add("procon");
  var v=o.querySelector("#pv");v.srcObject=stream;
- PROC={id:it.id,stream:stream,warn:0,photos:0,log:[],start:Date.now(),last:0,done:false,wasFull:false,phoneLost:false};
- function stat(){o.querySelector("#pstat").innerHTML='Keep your desk area in view.<br>Warnings: <b>'+PROC.warn+' of 3</b>'}stat();
+ PROC={id:it.id,stream:stream,warn:0,photos:0,log:[],start:Date.now(),last:0,done:false,wasFull:false,phoneLost:false,resumed:0};
+ var pbox=o.querySelector("#pqbox"),dw=draftWire(pbox,it,Q,function(){return PROC?{warn:PROC.warn,log:PROC.log,start:PROC.start,resumed:PROC.resumed}:{}});
+ if(dw.had){var pd=dw.d;PROC.warn=Math.min(2,+pd.warn||0);PROC.log=(pd.log||[]).slice(0,50);PROC.start=+pd.start||PROC.start;PROC.resumed=(+pd.resumed||0)+1;PROC.log.push({t:Date.now(),type:"Resumed after the page was closed or reloaded"});dw.save()}
+ function stat(){if(!PROC)return;o.querySelector("#pstat").innerHTML='Keep your desk area in view.<br>Warnings: <b>'+PROC.warn+' of 3</b>'}stat();
  function tool(k){o.querySelectorAll("[data-pt]").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-pt")===k)});var bd=o.querySelector("#ptbody");
   o.classList.toggle("wide",k==="fs");if(k==="calc"){bd.innerHTML=calcHTML();calcWire()}else if(k==="pt"){bd.innerHTML=ptHTML();bd.querySelectorAll("[data-z]").forEach(function(b){b.onclick=function(){var e=window.TOOLS.pt[+b.getAttribute("data-z")-1];bd.querySelector("#ptinfo").innerHTML='<b>'+e[2]+'</b> ('+e[1]+') &middot; atomic number '+e[0]+' &middot; atomic mass '+e[3]}})}else bd.innerHTML=sheetHTML(it)}
  o.querySelectorAll("[data-pt]").forEach(function(b){b.onclick=function(){tool(b.getAttribute("data-pt"))}});tool("calc");
  var cv=document.createElement("canvas");cv.width=480;cv.height=360;
- function snap(kind,note){if(!stream||PROC.done&&kind==="photo")return;try{var w=v.videoWidth||640,h=v.videoHeight||480,s=Math.min(480/w,360/h);cv.width=Math.round(w*s);cv.height=Math.round(h*s);cv.getContext("2d").drawImage(v,0,0,cv.width,cv.height);var b64=cv.toDataURL("image/jpeg",0.62).split(",")[1];
-  api("snap",{chapter:it.id,kind:kind,note:note||"",b64:b64}).then(function(r){if(r.ok){PROC.photos++;stat()}}).catch(function(){})}catch(e){}}
+ function snap(kind,note){if(!stream||!PROC||PROC.done&&kind==="photo")return;try{var w=v.videoWidth||640,h=v.videoHeight||480,s=Math.min(480/w,360/h);cv.width=Math.round(w*s);cv.height=Math.round(h*s);cv.getContext("2d").drawImage(v,0,0,cv.width,cv.height);var b64=cv.toDataURL("image/jpeg",0.62).split(",")[1];
+  api("snap",{chapter:it.id,kind:kind,note:note||"",b64:b64}).then(function(r){if(r.ok&&PROC){PROC.photos++;stat()}}).catch(function(){})}catch(e){}}
  var sv=null,scv=document.createElement("canvas");if(scr){sv=document.createElement("video");sv.muted=true;sv.playsInline=true;sv.srcObject=scr;sv.play().catch(function(){});
-  scr.getVideoTracks().forEach(function(tr){tr.onended=function(){if(!PROC.done)violation("You stopped sharing your screen")}})}
- function shot(note){if(!sv||!sv.videoWidth||PROC.done&&note!=="exit")return;try{var w=sv.videoWidth,h=sv.videoHeight,k=Math.min(1,1280/w);scv.width=Math.round(w*k);scv.height=Math.round(h*k);scv.getContext("2d").drawImage(sv,0,0,scv.width,scv.height);
+  scr.getVideoTracks().forEach(function(tr){tr.onended=function(){if(PROC&&!PROC.done)violation("You stopped sharing your screen")}})}
+ function shot(note){if(!sv||!sv.videoWidth||!PROC||PROC.done&&note!=="exit")return;try{var w=sv.videoWidth,h=sv.videoHeight,k=Math.min(1,1280/w);scv.width=Math.round(w*k);scv.height=Math.round(h*k);scv.getContext("2d").drawImage(sv,0,0,scv.width,scv.height);
   api("snap",{chapter:it.id,kind:"screen",note:note||"",b64:scv.toDataURL("image/jpeg",0.55).split(",")[1]}).catch(function(){})}catch(e){}}
- setTimeout(function(){snap("photo","start");shot("start")},1500);PROC.timer=setInterval(function(){snap("photo");shot()},30000);
- if(it.phone&&PH){PH.onState=function(){if(PROC.done)return;var ok=phoneOK();o.querySelector("#pphs").textContent=ok?(PH.live?"Phone camera (live)":"Phone camera"):"Phone camera not sending";o.querySelector(".pphw").classList.toggle("lost",!ok);
+ setTimeout(function(){snap("photo","start");shot("start")},1500);var tick=0;PROC.timer=setInterval(function(){snap("photo");if(++tick%2===0)shot()},30000);
+ if(it.phone&&PH){PH.onState=function(){if(!PROC||PROC.done)return;var ok=phoneOK();o.querySelector("#pphs").textContent=ok?(PH.live?"Phone camera (live)":"Phone camera"):"Phone camera not sending";o.querySelector(".pphw").classList.toggle("lost",!ok);
    if(ok){PH.badSince=0;PROC.phoneLost=false}else{PH.badSince=PH.badSince||Date.now();if(Date.now()-PH.badSince>60000&&!PROC.phoneLost){PROC.phoneLost=true;violation("Your phone camera stopped sending")}}};phoneVideos();PROC.ptimer=setInterval(function(){PH&&PH.onState()},5000)}
 
  function goFull(){var el=document.documentElement;var f=el.requestFullscreen||el.webkitRequestFullscreen;if(f)try{var p=f.call(el);PROC.wasFull=true;if(p&&p.catch)p.catch(function(){PROC.wasFull=false})}catch(e){}}
  goFull();
- function violation(type){if(PROC.done)return;var now=Date.now();if(now-PROC.last<2500)return;PROC.last=now;PROC.warn++;PROC.log.push({t:now,type:type});stat();snap("exit",type);shot("exit");
+ function violation(type){if(!PROC||PROC.done)return;var now=Date.now();if(now-PROC.last<2500)return;PROC.last=now;PROC.warn++;PROC.log.push({t:now,type:type});dw.save();stat();snap("exit",type);shot("exit");
   if(PROC.warn>=3){finish(true,type);return}
   o.querySelector("#pwt").textContent="Warning "+PROC.warn+" of 3";o.querySelector("#pwp").textContent=type+". This has been recorded. If it happens 3 times, your "+noun+" is submitted automatically.";o.querySelector("#pwarn").hidden=false}
  o.querySelector("#pwback").onclick=function(){var e=o.querySelector("#pwend");e.textContent="Submit now and end the "+noun;delete e.dataset.sure;o.querySelector("#pwnote").hidden=true;o.querySelector("#pwarn").hidden=true;goFull()};
@@ -3354,26 +3379,30 @@ function procRun(it,Q,stream,back,scr){var c=it.ch[0],noun=it.kind==="exam"?"exa
  PROC.noCtx=function(e){e.preventDefault()};
  document.addEventListener("fullscreenchange",PROC.onFs);document.addEventListener("webkitfullscreenchange",PROC.onFs);document.addEventListener("visibilitychange",PROC.onVis);window.addEventListener("blur",PROC.onBlur);window.addEventListener("beforeunload",PROC.onUnload);document.addEventListener("keydown",PROC.onKey);o.addEventListener("contextmenu",PROC.noCtx);
  stream.getVideoTracks().forEach(function(tr){tr.onended=function(){violation("Your camera was turned off")}});
- var box=o.querySelector("#pqbox");
+ var box=pbox;
  quizSubmitWire(box,it,Q,function(){finish(false)});
  function finish(auto,why){if(PROC.done)return;PROC.done=true;var ans=collectAns(box,Q);
   o.querySelector("#pwarn").hidden=false;o.querySelector("#pwt").textContent=auto?"Submitted automatically":"Submitting...";o.querySelector("#pwp").textContent=auto?("You left the "+noun+" screen 3 times ("+why+"). Your answers so far are being submitted."):"Please wait.";o.querySelector("#pwback").hidden=true;o.querySelector("#pwend").hidden=true;o.querySelector("#pwnote").hidden=true;
-  var extra={log:{proctored:true,phone:!!it.phone,warnings:PROC.warn,events:PROC.log,photos:PROC.photos,start:PROC.start,end:Date.now(),auto:!!auto}};
+  var extra={log:{proctored:true,phone:!!it.phone,warnings:PROC.warn,events:PROC.log,photos:PROC.photos,start:PROC.start,end:Date.now(),auto:!!auto,resumed:PROC.resumed}};draftSet(it.id,{ans:ans,n:Q.length,t:Date.now(),warn:PROC.warn,log:PROC.log,start:PROC.start,resumed:PROC.resumed});
   function cleanup(){clearInterval(PROC.timer);clearInterval(PROC.ptimer);document.removeEventListener("fullscreenchange",PROC.onFs);document.removeEventListener("webkitfullscreenchange",PROC.onFs);document.removeEventListener("visibilitychange",PROC.onVis);window.removeEventListener("blur",PROC.onBlur);window.removeEventListener("beforeunload",PROC.onUnload);document.removeEventListener("keydown",PROC.onKey);
-   phoneStop(true);stream.getTracks().forEach(function(x){x.stop()});if(scr)scr.getTracks().forEach(function(x){x.stop()});if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(function(){});o.remove();document.documentElement.classList.remove("procon");back()}
-  var tries=0;(function send(){sendQuiz(it.id,ans,extra).then(function(r){if(r.ok||/already submitted/.test(r.error||"")){cleanup()}else{o.querySelector("#pwp").textContent=r.error||"Could not submit. Retrying...";if(++tries<5)setTimeout(send,3000)}}).catch(function(){o.querySelector("#pwp").textContent="Could not reach the class server. Retrying...";if(++tries<20)setTimeout(send,4000)})})()}
+   phoneStop(true);stream.getTracks().forEach(function(x){x.stop()});if(scr)scr.getTracks().forEach(function(x){x.stop()});if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(function(){});o.remove();document.documentElement.classList.remove("procon");PROC=null;back()}
+  var tries=0,rb=o.querySelector("#pwretry");rb.onclick=function(){rb.hidden=true;tries=0;send()};
+  function later(t,stop){o.querySelector("#pwp").textContent=t+(stop?" Your answers are saved on this computer. Check your internet connection, then try again.":" Trying again...");if(stop){rb.hidden=false}else setTimeout(send,Math.min(20000,2500*Math.pow(1.5,tries)))}
+  function send(){sendQuiz(it.id,ans,extra).then(function(r){if(r.ok){cleanup()}else later(r.error||"Could not submit.",++tries>=4)}).catch(function(){later("Could not reach the class server.",++tries>=8)})}send()}
 }
 /* teacher: proctor photos for a quiz */
-function procTeacherHTML(q,id){if(!q||!q.log)return "";var L=q.log;return '<div class="plog"><b>Proctored</b> &middot; '+L.warnings+' warning'+(L.warnings===1?'':'s')+(L.auto?' &middot; <span class="badge">auto-submitted</span>':'')+(L.phone?' &middot; phone camera on':'')+' &middot; '+L.photos+' photos &middot; '+Math.round((L.end-L.start)/60000)+' min'+
+function procTeacherHTML(q,id){if(!q||!q.log)return "";var L=q.log,W=+L.warnings||0,PH0=+L.photos||0,MIN=Math.round(((+L.end||0)-(+L.start||0))/60000)||0;
+ if(L.missing)return '<div class="plog"><span class="badge">No proctoring record</span> This was submitted without the proctored screen (no camera, phone or screen record). Consider resetting the attempt.</div>';
+ return '<div class="plog"><b>Proctored</b> &middot; '+W+' warning'+(W===1?'':'s')+(L.auto?' &middot; <span class="badge">auto-submitted</span>':'')+(+L.resumed?' &middot; <span class="badge">reloaded '+(+L.resumed)+'x</span>':'')+(L.phone?' &middot; phone camera on':'')+' &middot; '+PH0+' photos &middot; '+MIN+' min'+
  (L.events&&L.events.length?'<ul>'+L.events.map(function(e){return '<li>'+new Date(e.t).toLocaleTimeString()+' &middot; '+esc(e.type)+'</li>'}).join("")+'</ul>':'')+'<button class="btn" data-snaps="'+id+'">Show photos</button><div class="snapgrid" id="sg_'+id+'" hidden></div></div>'}
 function procTeacherWire(root,em){root.querySelectorAll("[data-snaps]").forEach(function(b){b.onclick=function(){var id=b.getAttribute("data-snaps"),g=root.querySelector("#sg_"+id);if(!g.hidden){g.hidden=true;b.textContent="Show photos";return}b.disabled=true;b.textContent="Loading list...";
  api("snaplist",{student:em,chapter:id}).then(function(r){b.disabled=false;if(!r.ok){b.textContent=r.error;return}var SN=r.snaps.filter(function(s){return s.kind!=="start"}),ST=r.snaps.filter(function(s){return s.kind==="start"});
   function lab(s){return s.kind==="phone"?"Phone":s.kind==="screen"?"Screen":s.kind==="exit"?"Webcam (left the quiz)":"Webcam"}
   var kinds=["photo","phone","screen"];g.innerHTML=(ST.length?'<p class="dim">Opened the questions: '+ST.map(function(s){return new Date(s.t).toLocaleString()}).join(", ")+(ST.length>1?' <span class="badge">opened '+ST.length+' times</span>':'')+'</p>':'')+
-   (SN.length?'<div class="snapfilt">'+['all','photo','phone','screen'].map(function(k){return '<button class="btn'+(k==="all"?' pri':'')+'" data-sf="'+k+'">'+{all:"All",photo:"Webcam",phone:"Phone",screen:"Screen"}[k]+'</button>'}).join("")+'</div><div class="snapwrap">'+SN.map(function(s){return '<figure data-k="'+(s.kind==="exit"?"photo":s.kind)+'" class="'+(s.kind==="exit"?"sx":s.kind==="phone"?"sp":s.kind==="screen"?"ss":"")+'"><div class="noimg" data-sid="'+esc(s.id)+'">loading</div><figcaption>'+lab(s)+' &middot; '+new Date(s.t).toLocaleTimeString()+(s.kind==="exit"?' &middot; '+esc(s.note):'')+'</figcaption></figure>'}).join("")+'</div>':'<p class="dim">No photos saved.</p>');
+   (SN.length?'<div class="snapfilt">'+['all','photo','phone','screen'].map(function(k){return '<button class="btn'+(k==="all"?' pri':'')+'" data-sf="'+k+'">'+{all:"All",photo:"Webcam",phone:"Phone",screen:"Screen"}[k]+'</button>'}).join("")+'</div><div class="snapwrap">'+SN.map(function(s){return '<figure data-k="'+(s.kind==="exit"?"photo":esc(s.kind))+'" class="'+(s.kind==="exit"?"sx":s.kind==="phone"?"sp":s.kind==="screen"?"ss":"")+'"><div class="noimg" data-sid="'+esc(s.id)+'">loading</div><figcaption>'+lab(s)+' &middot; '+new Date(s.t).toLocaleTimeString()+(s.kind==="exit"?' &middot; '+esc(s.note):'')+'</figcaption></figure>'}).join("")+'</div>':'<p class="dim">No photos saved.</p>');
   g.hidden=false;b.textContent="Hide photos";
   g.querySelectorAll("[data-sf]").forEach(function(f){f.onclick=function(){var k=f.getAttribute("data-sf");g.querySelectorAll("[data-sf]").forEach(function(x){x.classList.toggle("pri",x===f)});g.querySelectorAll("figure").forEach(function(fg){fg.hidden=k!=="all"&&fg.getAttribute("data-k")!==k})}});
-  var ids=SN.map(function(s){return s.id}).filter(Boolean);(function next(){if(!ids.length||g.hidden)return;var batch=ids.splice(0,8);api("snapimgs",{student:em,ids:batch}).then(function(r2){batch.forEach(function(sid){var el=g.querySelector('[data-sid="'+sid+'"]');if(!el)return;var src=r2.ok&&r2.imgs[sid];if(src){var im=new Image();im.src=src;im.alt="";el.replaceWith(im)}else el.textContent="missing"});next()}).catch(function(){next()})})()}).catch(function(){b.disabled=false;b.textContent="Could not reach the class server"})}})}
+  var ids=SN.map(function(s){return s.id}).filter(Boolean);(function next(){if(!ids.length||g.hidden)return;var batch=ids.splice(0,8);api("snapimgs",{student:em,chapter:id,ids:batch}).then(function(r2){batch.forEach(function(sid){var el=g.querySelector('[data-sid="'+sid+'"]');if(!el)return;var src=r2.ok&&r2.imgs[sid];if(src){var im=new Image();im.src=src;im.alt="";el.replaceWith(im)}else el.textContent="missing"});next()}).catch(function(){next()})})()}).catch(function(){b.disabled=false;b.textContent="Could not reach the class server"})}})}
 
 /* ---------- homework grading with pen and text ---------- */
 var LIB={pdf:"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",worker:"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",jspdf:"https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"};
@@ -3382,7 +3411,7 @@ function needPdf(){return loadJS(LIB.pdf).then(function(){window.pdfjsLib.Global
 function b64bytes(b){var s=atob(b),u=new Uint8Array(s.length);for(var i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u}
 /* turn a file (pdf or image) into page canvases */
 function filePages(mime,b64,name){var isPdf=/pdf/i.test(mime)||/\.pdf$/i.test(name||"");
- if(isPdf)return needPdf().then(function(){return pdfjsLib.getDocument({data:b64bytes(b64)}).promise}).then(function(doc){var out=[],p=Promise.resolve();for(var i=1;i<=doc.numPages;i++)(function(n){p=p.then(function(){return doc.getPage(n)}).then(function(pg){var v=pg.getViewport({scale:1}),sc=1100/v.width,vp=pg.getViewport({scale:sc}),c=document.createElement("canvas");c.width=Math.round(vp.width);c.height=Math.round(vp.height);var x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);return pg.render({canvasContext:x,viewport:vp}).promise.then(function(){out.push(c)})})})(i);return p.then(function(){return out})});
+ if(isPdf)return needPdf().then(function(){return pdfjsLib.getDocument({data:b64bytes(b64),isEvalSupported:false,enableXfa:false}).promise}).then(function(doc){var out=[],p=Promise.resolve();for(var i=1;i<=doc.numPages;i++)(function(n){p=p.then(function(){return doc.getPage(n)}).then(function(pg){var v=pg.getViewport({scale:1}),sc=1100/v.width,vp=pg.getViewport({scale:sc}),c=document.createElement("canvas");c.width=Math.round(vp.width);c.height=Math.round(vp.height);var x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);return pg.render({canvasContext:x,viewport:vp}).promise.then(function(){out.push(c)})})})(i);return p.then(function(){return out})});
  return new Promise(function(ok,no){var im=new Image();im.onload=function(){var sc=Math.min(1,1400/im.width),c=document.createElement("canvas");c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);var x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);ok([c])};im.onerror=function(){no(new Error("This image type can't be shown in the browser ("+(name||mime)+")."))};im.src="data:"+(mime||"image/jpeg")+";base64,"+b64})}
 /* shrink photos before students upload them */
 function shrinkImage(file){return new Promise(function(ok){if(!/^image\/(jpeg|png|webp)/i.test(file.type)){ok(null);return}var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var sc=Math.min(1,1800/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);var x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);ok({b64:c.toDataURL("image/jpeg",0.82).split(",")[1],mime:"image/jpeg",name:file.name.replace(/\.[^.]+$/,"")+".jpg"})};im.onerror=function(){ok(null)};im.src=r.result};r.readAsDataURL(file)})}
@@ -3390,7 +3419,7 @@ function shrinkImage(file){return new Promise(function(ok){if(!/^image\/(jpeg|pn
 function openGrader(o){/* o: {student,name,chapter,files:[{id,name,mime}],grade} or {view:true,pages from gradedcopy} */
  var G2=document.createElement("div");G2.id="grader";var ro=!!o.readonly;
  G2.innerHTML='<div class="gbar"><div class="gwho"><b>'+esc(o.title)+'</b></div>'+(ro?'':'<div class="gtools"><button data-gt="pen" class="on" title="Pen">Pen</button><button data-gt="text" title="Click on the page to type">Text</button><button data-gt="erase" title="Erase your marks">Eraser</button><span class="gsep"></span>'+["#d0021b","#1f5fd6","#0b7a3e","#111111"].map(function(c,i){return '<button class="gcol'+(i?'':' on')+'" data-gc="'+c+'" style="background:'+c+'" title="Color"></button>'}).join("")+'<select id="gsize" title="Size"><option value="2">Thin</option><option value="4" selected>Medium</option><option value="7">Thick</option></select><button id="gundo">Undo</button></div>')+'<button class="btn" id="gclose">Close</button></div>'+
-  '<div class="gmain"><div class="gpages" id="gpages"><p class="gload">Loading pages...</p></div>'+(ro?'':'<aside class="gside"><h3>Grade</h3><div class="gpts"><input type="number" id="gsc" min="0" step="0.5" placeholder="Points"> <span>out of</span> <input type="number" id="gtot" min="1" step="1" value="10"></div><label for="gcm">Comment for the student</label><textarea id="gcm" rows="6"></textarea><button class="btn pri" id="gsave">Save grade and marked copy</button><p id="gmsg" class="gmsg"></p><h3>Files</h3><ul class="gfiles" id="gfiles"></ul></aside>')+'</div>';
+  '<div class="gmain"><div class="gpages'+(ro?' ro':'')+'" id="gpages"><p class="gload">Loading pages...</p></div>'+(ro?'':'<aside class="gside"><h3>Grade</h3><div class="gpts"><input type="number" id="gsc" min="0" step="0.5" placeholder="Points"> <span>out of</span> <input type="number" id="gtot" min="1" step="1" value="10"></div><label for="gcm">Comment for the student</label><textarea id="gcm" rows="6"></textarea><button class="btn pri" id="gsave">Save grade and marked copy</button><p id="gmsg" class="gmsg"></p><h3>Files</h3><ul class="gfiles" id="gfiles"></ul></aside>')+'</div>';
  document.body.appendChild(G2);document.documentElement.classList.add("procon");
  var pagesEl=G2.querySelector("#gpages"),tool="pen",color="#d0021b",ops=[],pages=[];
  function close(){G2.remove();document.documentElement.classList.remove("procon")}
@@ -3425,7 +3454,7 @@ function gradeSubmission(st,name,ch,files,grade,onSaved){
  openGrader({title:name+" · Chapter "+chNo(ch)+" homework",student:st,chapter:ch,files:files,grade:grade,onSaved:onSaved,load:function(){
   var newer=files.filter(function(f){return !grade||!f.date||f.date>grade.date});
   var src=grade&&grade.copy?[{copy:true,name:"marked copy"}].concat(newer):files,all=[],p=Promise.resolve();
-  src.forEach(function(f){p=p.then(function(){return f.copy?api("gradedcopy_admin",{student:st,chapter:ch}):api("file",{fileId:f.id})}).then(function(r){if(!r.ok)throw new Error(r.error);return filePages(r.mime,r.b64,f.name)}).then(function(cs){all=all.concat(cs)})});
+  src.forEach(function(f){p=p.then(function(){return f.copy?api("gradedcopy_admin",{student:st,chapter:ch}):api("file",{fileId:f.id})}).then(function(r){if(!r.ok)throw new Error(r.error);return filePages(r.mime,r.b64,f.name)}).then(function(cs){all=all.concat(cs)},function(e){var c=document.createElement("canvas");c.width=1100;c.height=300;var x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,1100,300);x.fillStyle="#b42a4b";x.font="bold 28px sans-serif";x.fillText("This file could not be shown: "+String(f.name||"file").slice(0,50),40,120);x.fillStyle="#333";x.font="22px sans-serif";x.fillText("Open it from the Student uploads folder in Google Drive.",40,170);all.push(c)})});
   return p.then(function(){return all})}})}
 function viewGradedCopy(ch){openGrader({title:"Your graded homework · Chapter "+chNo(ch),readonly:true,files:[],load:function(){return api("gradedcopy",{chapter:ch}).then(function(r){if(!r.ok)throw new Error(r.error);return filePages(r.mime,r.b64,"graded.pdf")})}})}
 /* teacher homework list */
@@ -3576,16 +3605,17 @@ function parseQs(text){var L=String(text||"").replace(/\r/g,"").split("\n"),qs=[
 
 /* gradebook: one row per student, every homework, quiz and exam, plus category and course percentages (points based, graded work only) */
 function tGradebook(){var L=(TD.roster||[]).slice().sort(function(a,b){return a.name.localeCompare(b.name)}),cols=[],hwTot={};
- chList().forEach(function(x){var id=x.c.id;(TD.roster||[]).forEach(function(s){var g=s.grades[id+"|homework"];if(g)hwTot[id]=g.total})});
+ chList().forEach(function(x){var id=x.c.id;(TD.roster||[]).forEach(function(s){var g=s.grades[id+"|homework"];if(g)hwTot[id]=Math.max(hwTot[id]||0,g.total)})});
  chList().forEach(function(x){var id=x.c.id;cols.push({k:"hw",id:id,name:"Homework "+x.n+" (Ch "+chNo(id)+")",tot:hwTot[id]||null})});
  chList().forEach(function(x){var id=x.c.id,it=ITEMS[id];cols.push({k:"quiz",id:id,name:((it&&it.title)||"Quiz "+x.n)+" (Ch "+chNo(id)+")",tot:it?it.n:null})});
  Object.keys(ITEMS).filter(function(k){return ITEMS[k].kind==="exam"}).sort().forEach(function(k){cols.push({k:"exam",id:k,name:ITEMS[k].title,tot:ITEMS[k].n})});
- function q(v){v=v==null?"":String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+ function q(v){v=v==null?"":String(v);if(/^[=+\-@]/.test(v)&&isNaN(+v))v="'"+v;return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
  function r2(x){return Math.round(x*100)/100}
- var head=["Student","Email"].concat(cols.map(function(c){return c.name+(c.tot?" (out of "+c.tot+")":"")})).concat(["Homework %","Quizzes %","Exams %","Points earned","Points possible","Course grade %"]);
+ var hwVals=Object.keys(hwTot).map(function(k){return hwTot[k]}),hwDef=hwVals.length?Math.max.apply(null,hwVals):10;
+ var head=["Student","Email"].concat(cols.map(function(c){return c.name+(c.tot?" (out of "+c.tot+")":"")})).concat(["Homework %","Quizzes %","Exams %","Points earned","Points possible","Grade so far % (turned-in work only)","Final grade % (missing work counts as 0)"]);
  var rows=L.map(function(s){var P={hw:[0,0],quiz:[0,0],exam:[0,0]},cells=cols.map(function(c){var g=c.k==="hw"?s.grades[c.id+"|homework"]:s.quizzes[c.id];if(!g)return "";P[c.k][0]+=g.score;P[c.k][1]+=g.total;return r2(g.score)});
-  function pc(a){return a[1]?r2(100*a[0]/a[1]):""}var E=P.hw[0]+P.quiz[0]+P.exam[0],T=P.hw[1]+P.quiz[1]+P.exam[1];
-  return [s.name,s.email].concat(cells).concat([pc(P.hw),pc(P.quiz),pc(P.exam),r2(E),r2(T),T?r2(100*E/T):""])});
+  function pc(a){return a[1]?r2(100*a[0]/a[1]):""}var E=P.hw[0]+P.quiz[0]+P.exam[0],T=P.hw[1]+P.quiz[1]+P.exam[1],ALL=0;cols.forEach(function(c){var g=c.k==="hw"?s.grades[c.id+"|homework"]:s.quizzes[c.id];ALL+=g?g.total:(c.tot||(c.k==="hw"?hwDef:0))});
+  return [s.name,s.email].concat(cells).concat([pc(P.hw),pc(P.quiz),pc(P.exam),r2(E),r2(T),T?r2(100*E/T):"",ALL?r2(100*E/ALL):""])});
  var csv="\ufeff"+[head].concat(rows).map(function(r){return r.map(q).join(",")}).join("\r\n"),d=new Date(),
   name="IOB Gradebook "+d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)+".csv";
  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1000)}
@@ -3819,14 +3849,14 @@ document.addEventListener("click",function(e){
  if(d.qzs){S.qzScope=d.qzs;quiz();return}
  if(b.classList.contains("term")){b.classList.toggle("closed");return}
 });
-$("#q").addEventListener("input",function(e){var v=e.target.value.trim();if(v.length>1){S.query=v;S.view="search";render()}else if(S.view==="search"){go("home")}});
+$("#q").addEventListener("input",function(e){if(typeof QBUSY!=="undefined"&&QBUSY){e.target.value="";return}var v=e.target.value.trim();if(v.length>1){S.query=v;S.view="search";render()}else if(S.view==="search"){go("home")}});
 document.addEventListener("keydown",function(e){
  if(e.target.tagName==="INPUT")return;
  if(S.view==="flash"&&S.fc){if(e.key==="ArrowRight")$("#fnext").click();else if(e.key==="ArrowLeft")$("#fprev").click();else if(e.key===" "){e.preventDefault();$("#fflip").click()}}
  if(S.view==="slides"&&S.sch){if(e.key==="ArrowRight"){var nb=document.querySelector('[data-sk="1"]');if(nb&&!nb.disabled)nb.click()}else if(e.key==="ArrowLeft"){var pb=document.querySelector('[data-sk="-1"]');if(pb&&!pb.disabled)pb.click()}}
- if(e.key==="Escape"&&S.view!=="home")go("home");
+ if(e.key==="Escape"&&S.view!=="home"&&!/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||"")&&!(typeof QBUSY!=="undefined"&&QBUSY))go("home");
 });
-document.getElementById("whoe").textContent=window.UAMUSER.n;(function(){var su=null;try{su=localStorage.getItem("iobsite:u:"+window.UAMUSER.h)}catch(e){}if(su!==null&&UNITS[+su]&&!isAdmin()&&ALLCH.some(function(c){return UNITS[+su].chs.indexOf(c.id)>=0}))setUnit(+su)})();document.getElementById("signout").onclick=function(){try{localStorage.removeItem(window.UAMSK)}catch(e){}window.UAMCLEAR&&window.UAMCLEAR();window.name="";location.reload()};
+document.getElementById("whoe").textContent=window.UAMUSER.n;(function(){var su=null;try{su=localStorage.getItem("iobsite:u:"+window.UAMUSER.h)}catch(e){}if(su!==null&&UNITS[+su]&&!isAdmin()&&ALLCH.some(function(c){return UNITS[+su].chs.indexOf(c.id)>=0}))setUnit(+su)})();document.getElementById("signout").onclick=function(){if(typeof flushProgress==="function")flushProgress();try{var hh=window.UAMUSER.h,ks=[];for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf(hh)>=0)ks.push(k)}ks.forEach(function(k){localStorage.removeItem(k)});localStorage.removeItem(window.UAMSK)}catch(e){}window.UAMCLEAR&&window.UAMCLEAR();window.name="";location.reload()};
 render();loadMine();
 };if(window.UAMUSER)window.UAMSTART();
 </script>
