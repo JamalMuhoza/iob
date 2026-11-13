@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex">
+<title>Quiz phone camera</title>
+<style>
+:root{--g:#0a5a40;--bg:#f3f1ea;--ink:#16211c}
+*{box-sizing:border-box}html,body{height:100%}body{margin:0;font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+main{max-width:720px;margin:0 auto;padding:14px 14px 28px;display:flex;flex-direction:column;gap:8px;min-height:100%}
+h1{font-size:20px;margin:0;color:var(--g)}
+ol{padding-left:20px;margin:0}
+.cam{background:#000;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:200px}
+video{width:100%;height:auto;max-height:62vh;object-fit:contain;display:block}
+.btn{border:0;border-radius:10px;padding:13px 16px;font:600 16px system-ui;background:var(--g);color:#fff;width:100%}
+.btn.sec{background:#fff;color:var(--g);border:2px solid var(--g)}.btn.stop{background:#b23b37}
+.row{display:flex;gap:8px}.row .btn{flex:1}
+.st{padding:10px 12px;border-radius:10px;background:#fff;border:1px solid #d6d2c4}
+.ok{border-color:#2e8b57;background:#eaf6ef}.bad{border-color:#d9534f;background:#fbecec}
+.tip{font-size:14px;color:#4a564f;margin:0}
+body.on .intro{display:none}
+@media (orientation:landscape) and (max-height:520px){main{max-width:none}video{max-height:70vh}}
+</style></head><body><main>
+<h1>Phone camera for your quiz</h1>
+<div class="intro"><ol><li>Tap <b>Start phone camera</b> and allow the camera.</li><li>Place the phone to your side so it shows <b>you, your hands and your desk</b>.</li><li>Keep this page open and the screen on until you submit on your computer.</li></ol></div>
+<div class="cam"><video id="v" autoplay playsinline muted></video></div>
+<p class="tip">Turning the phone sideways gives a wider view of your desk.</p>
+<button class="btn" id="go">Start phone camera</button>
+<div class="row" id="ctl" hidden><button class="btn sec" id="flip">Switch camera</button><button class="btn stop" id="stop">Stop camera</button></div>
+<div class="st" id="st">Not started.</div>
+</main>
+<script>
+(function(){
+var API="https://script.google.com/macros/s/AKfycbwDXT7WhWJizNnd-s_oCLefpYPnvI1e_GrrsAm7c4cE3iHUCexUN6aIi6L_zwRJmZmN0w/exec",code=(location.hash||"").replace("#","").trim().toUpperCase(),v=document.getElementById("v"),st=document.getElementById("st"),
+ stream=null,facing="environment",pc=null,ansV=0,poll=null,snapT=null,lastSnap=0,lock=null,ended=false,stopped=false,who="";
+function say(t,c){st.textContent=t;st.className="st"+(c?" "+c:"")}
+function post(o){o.pair=code;return fetch(API,{method:"POST",body:JSON.stringify(o)}).then(function(r){return r.json()})}
+if(!/^[A-Z0-9]{6}$/.test(code)){say("This link is missing its code. Scan the QR code on your computer again.","bad");document.getElementById("go").disabled=true;return}
+function live(){return pc&&pc.connectionState==="connected"}
+function status(){if(ended||stopped)return;say(live()?"Live on your computer"+who+". Keep this page open and the screen on.":"Connecting to your computer"+who+"...",live()?"ok":"")}
+function finish(msg){ended=true;clearInterval(poll);clearTimeout(snapT);try{pc&&pc.close()}catch(e){}if(stream)stream.getTracks().forEach(function(t){t.stop()});stream=null;v.srcObject=null;try{lock&&lock.release()}catch(e){}
+ document.getElementById("ctl").hidden=true;document.getElementById("go").hidden=true;document.body.classList.remove("on");say(msg+" You can close this page.","ok")}
+function start(){if(stream)stream.getTracks().forEach(function(t){t.stop()});
+ navigator.mediaDevices.getUserMedia({video:{facingMode:facing,width:{ideal:1280},height:{ideal:720}},audio:false}).then(function(s){stream=s;v.srcObject=s;document.body.classList.add("on");
+  document.getElementById("go").hidden=true;document.getElementById("ctl").hidden=false;stopped=false;wake();
+  if(pc){var snd=pc.getSenders()[0];if(snd)snd.replaceTrack(s.getVideoTracks()[0]).catch(function(){})}
+  status();clearInterval(poll);poll=setInterval(check,4000);check();clearTimeout(snapT);snapT=setTimeout(snap,1500)})
+ .catch(function(){say("Camera blocked. Allow the camera for this page in your browser settings, then tap Start again.","bad")})}
+function wake(){try{if(navigator.wakeLock)navigator.wakeLock.request("screen").then(function(l){lock=l}).catch(function(){})}catch(e){}}
+function iceDone(p){return new Promise(function(ok){if(p.iceGatheringState==="complete")return ok();var t=setTimeout(ok,3000);p.addEventListener("icegatheringstatechange",function(){if(p.iceGatheringState==="complete"){clearTimeout(t);ok()}})})}
+function answer(o){try{pc&&pc.close()}catch(e){}ansV=o.v;var p=new RTCPeerConnection({iceServers:[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]}]});pc=p;
+ p.onconnectionstatechange=status;stream.getTracks().forEach(function(t){p.addTrack(t,stream)});
+ p.setRemoteDescription({type:"offer",sdp:o.sdp}).then(function(){return p.createAnswer()}).then(function(a){return p.setLocalDescription(a)}).then(function(){return iceDone(p)}).then(function(){if(p===pc)return post({action:"pans",v:o.v,sdp:p.localDescription.sdp})}).catch(function(){})}
+function check(){if(ended||stopped||!stream)return;post({action:"prtc"}).then(function(r){if(r.ended){finish("Your quiz is finished. The camera is off.");return}if(!r.ok){say(r.error||"Could not connect.","bad");return}
+  who=r.name?" ("+r.name+(r.title?", "+r.title:"")+")":"";if(r.offer&&r.offer.v!==ansV&&window.RTCPeerConnection)answer(r.offer);status()}).catch(function(){say("No internet connection. Keep this page open; it will retry.","bad")})}
+function snap(){if(ended||stopped||!stream)return;if(!v.videoWidth){snapT=setTimeout(snap,800);return}
+ var c=document.createElement("canvas"),w=v.videoWidth,h=v.videoHeight,k=Math.min(1,640/Math.max(w,h));c.width=Math.round(w*k);c.height=Math.round(h*k);c.getContext("2d").drawImage(v,0,0,c.width,c.height);
+ post({action:"phonesnap",b64:c.toDataURL("image/jpeg",0.62).split(",")[1]}).then(function(r){if(r.ended)finish("Your quiz is finished. The camera is off.")}).catch(function(){});
+ snapT=setTimeout(snap,live()?30000:10000)}
+document.getElementById("go").onclick=start;
+document.getElementById("flip").onclick=function(){facing=facing==="environment"?"user":"environment";start()};
+document.getElementById("stop").onclick=function(){stopped=true;clearInterval(poll);clearTimeout(snapT);try{pc&&pc.close()}catch(e){}pc=null;ansV=0;if(stream)stream.getTracks().forEach(function(t){t.stop()});stream=null;v.srcObject=null;
+ document.getElementById("ctl").hidden=true;var g=document.getElementById("go");g.hidden=false;g.textContent="Start phone camera again";say("Camera stopped. If your quiz is still open, your instructor will see that the phone camera stopped.","bad")};
+document.addEventListener("visibilitychange",function(){if(!document.hidden&&stream&&!ended){wake();if(stream.getVideoTracks().some(function(t){return t.readyState==="ended"}))start();else check()}});
+})();
+</script></body></html>
