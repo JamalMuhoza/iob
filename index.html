@@ -3905,7 +3905,7 @@ function quiz(){
 /* ---------- tracker ---------- */
 function tkState(kind,id){return kind==="t"?(S.done[id]?1:(S.rev[id]?2:0)):(S.sub[id]||0)}
 function tkMatch(st){return S.tf==="all"||(S.tf==="done"&&st===1)||(S.tf==="rev"&&st===2)||(S.tf==="new"&&st===0)}
-function tkBtns(kind,id){var st=tkState(kind,id),a=kind==="t"?"data-tk":"data-sk";return '<span class="tkb"><button class="tkm'+(st===1?' on':'')+'" '+a+'="m|'+id+'" aria-pressed="'+(st===1)+'">Mastered</button><button class="tkr'+(st===2?' on':'')+'" '+a+'="r|'+id+'" aria-pressed="'+(st===2)+'">Needs review</button></span>'}
+function tkBtns(kind,id){var st=tkState(kind,id),a=kind==="t"?"data-tk":"data-sbk";return '<span class="tkb"><button class="tkm'+(st===1?' on':'')+'" '+a+'="m|'+id+'" aria-pressed="'+(st===1)+'">Mastered</button><button class="tkr'+(st===2?' on':'')+'" '+a+'="r|'+id+'" aria-pressed="'+(st===2)+'">Needs review</button></span>'}
 function track(){
  var n={1:0,2:0,0:0},tot=0;
  TOPICS.forEach(function(t){n[tkState("t",t.id)]++;tot++;(t.subs||[]).forEach(function(x,i){n[tkState("s",t.id+"#"+i)]++;tot++})});
@@ -3958,7 +3958,7 @@ document.addEventListener("click",function(e){
  if(d.t){S.tid=d.t;S.tab="learn";go("topic");return}
  if(d.tab){S.tab=d.tab;topic();return}
  if(d.nav){var t=topicById(S.tid),c=t._ch,i=c.topics.indexOf(t)+(+d.nav);if(c.topics[i]){S.tid=c.topics[i].id;S.tab="learn";go("topic")}return}
- if(d.tk||d.sk){var pr=(d.tk||d.sk).split("|"),act=pr[0],id=pr[1],isT=!!d.tk;
+ if(d.tk||d.sbk){var pr=(d.tk||d.sbk).split("|"),act=pr[0],id=pr[1],isT=!!d.tk;
   if(isT){var was=tkState("t",id);S.done[id]=false;S.rev[id]=false;
    if(act==="m"&&was!==1){S.done[id]=true;var tt=topicById(id);(tt.subs||[]).forEach(function(x,i){S.sub[id+"#"+i]=1})}
    else if(act==="m"&&was===1){var t2=topicById(id);(t2.subs||[]).forEach(function(x,i){delete S.sub[id+"#"+i]})}
