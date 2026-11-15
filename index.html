@@ -605,6 +605,8 @@ html.procon body{overflow:hidden}
 @media (max-width:700px){.megr~.tscroll .gbook th:nth-child(4),.megr~.tscroll .gbook td:nth-child(4){display:none}.megr~.tscroll .gbook td .btn{white-space:normal;padding:6px 8px;font-size:13px}.megr~.tscroll .gbook td,.megr~.tscroll .gbook th{padding:6px 6px;font-size:13.5px}}
 .wex{margin-bottom:10px;padding:12px 16px}.wex summary{cursor:pointer;font-size:16.5px;line-height:1.45}.wex summary:hover{color:var(--forest)}.wex[open] summary{font-weight:600;margin-bottom:8px}
 .wexa{border-top:1px solid var(--rule);padding-top:10px}.sgtools{margin:22px 0 4px}
+
+.vnote{margin:0 0 10px;font-size:14px;color:var(--muted)}
 .sldc{font-size:15px}.shwslide .sldivt{font-size:54px}
 .shwctl{position:absolute;right:18px;bottom:14px;display:flex;gap:8px;align-items:center;opacity:.25;transition:opacity .2s;font-family:var(--cond);color:#fff}
 .shwctl:hover{opacity:1}.shwctl button{background:var(--forest);color:#fff;border:1px solid #fff;border-radius:4px;padding:6px 12px;font-family:var(--cond);font-size:15px;cursor:pointer}.shwctl button[disabled]{opacity:.35}
@@ -835,9 +837,13 @@ function gsave(){try{localStorage.setItem(GK,JSON.stringify(G))}catch(e){}}
 function chOf(t){return t.id.split("-")[0]}
 function chNo(id){var c=ALLCH.filter(function(x){return x.id===id})[0];return c?(c.num===6.5?"6B":c.num):String(id||"").replace(/^ch/,"")}
 function pct(a,b){return Math.round(100*a/b)+"%"}
+function vclock(s){s=+s||0;var h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return (h?h+":"+(m<10?"0":""):"")+m+":"+(x<10?"0":"")+x}
 function vidHTML(t){var v=SITE.videos[t.id];
  if(!v)return '<div class="vnone">The video for this section will appear here.</div>';
- return '<div class="vwrap"><iframe src="https://www.youtube.com/embed/'+v+'?rel=0&playsinline=1" title="'+esc(t.title)+'" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>'}
+ var vp=String(v).split("|"),vs=+vp[1]||0,ve=+vp[2]||0,vq="";v=vp[0];
+ if(vp.length>1){vq=(vs?"&start="+vs:"")+(ve?"&end="+ve:"")}
+ var vn=vp.length>1?'<p class="vnote">From Dr. Muhoza\'s lecture. '+(vs||ve?'This section runs from '+vclock(vs)+(ve?' to '+vclock(ve):' to the end')+', and the video starts there when you press play.':'The whole video covers this section.')+'</p>':'';
+ return vn+'<div class="vwrap"><iframe src="https://www.youtube.com/embed/'+v+'?rel=0&playsinline=1'+vq+'" title="'+esc(t.title)+'" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>'}
 function hwHTML(cid){var w=SITE.hw[cid];if(!w)return '';
  return '<div class="hwbar"><div><div class="hud">Chapter '+chNo(cid)+' homework</div><b>'+esc(w.name)+'</b><span>'+w.pages.length+' pages</span></div><a class="btn pri" download="'+esc(w.name)+'" href="'+w.url+'" data-hwdl="'+cid+'">Download PDF</a></div><div class="hwpages">'+w.pages.map(function(src,i){return '<img src="'+src+'" alt="Homework page '+(i+1)+'" loading="lazy" decoding="async">'}).join("")+'</div>'}
 function fmt(x){return Math.round(x*10)/10}
