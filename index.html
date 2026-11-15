@@ -591,6 +591,18 @@ html.procon body{overflow:hidden}
 .foot b{font-family:var(--cond);letter-spacing:.04em;text-transform:uppercase;color:var(--forest);font-weight:600}
 #gate .note{color:#4d6856;font-size:13px;line-height:1.5;margin:14px 0 0;border-top:1px solid #e3e8e4;padding-top:12px}
 @media print{.foot{display:none}}
+.sectitle.left{text-align:left}
+.megr .stats{background:none;padding:0;gap:10px}
+.megr .gst{flex:1 1 130px;border:0;border-radius:var(--r);padding:14px 12px;background:rgba(255,255,255,.16)}
+.megr .gst b{font-size:30px}
+.megr .gst.sg{background:#0f8a43}.megr .gst.sy{background:#ffd60a}.megr .gst.sr{background:#d62839}
+.megr .gst.sy b,.megr .gst.sy span{color:#1c1a00}.megr .gst.sg span,.megr .gst.sr span{color:#fff}
+.gkey{margin:10px 0 0;font-size:13px;color:var(--band-ink,#06301f);display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+.gkey i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:-4px}.gkey .kg{background:#0f8a43}.gkey .ky{background:#ffd60a}.gkey .kr{background:#d62839}
+.fbwait{color:var(--dim);font-size:13.5px}
+.gbook td .btn{white-space:nowrap}
+.megr~.tscroll .gbook{width:100%;max-width:980px}
+@media (max-width:700px){.megr~.tscroll .gbook th:nth-child(4),.megr~.tscroll .gbook td:nth-child(4){display:none}.megr~.tscroll .gbook td .btn{white-space:normal;padding:6px 8px;font-size:13px}.megr~.tscroll .gbook td,.megr~.tscroll .gbook th{padding:6px 6px;font-size:13.5px}}
 .sldc{font-size:15px}.shwslide .sldivt{font-size:54px}
 .shwctl{position:absolute;right:18px;bottom:14px;display:flex;gap:8px;align-items:center;opacity:.25;transition:opacity .2s;font-family:var(--cond);color:#fff}
 .shwctl:hover{opacity:1}.shwctl button{background:var(--forest);color:#fff;border:1px solid #fff;border-radius:4px;padding:6px 12px;font-family:var(--cond);font-size:15px;cursor:pointer}.shwctl button[disabled]{opacity:.35}
@@ -838,12 +850,15 @@ function meView(){
  var qk=Object.keys(G).filter(function(k){return k.charAt(0)!=="_"&&G[k]&&G[k].total}),qp=0,qm=0;qk.forEach(function(k){qp+=G[k].score;qm+=G[k].total});
  var HG=G._hwg||{},hs=ALLCH.filter(function(c){return HG[c.id]}),hp=0,hm=0;hs.forEach(function(c){hp+=HG[c.id].score;hm+=HG[c.id].total});
  var all=qm+hm;
- function stat(v,l){return '<div class="stat"><b>'+v+'</b><span>'+l+'</span></div>'}
- var h='<div class="card glow hero"><div class="hud">My grades</div><h1 style="margin-top:6px">'+esc(window.UAMUSER.n)+'</h1><div class="stats">'+stat(all?pct(qp+hp,all):'--','Course grade')+stat(qm?pct(qp,qm):'--','Quizzes and exams')+stat(hm?pct(hp,hm):'--','Homework')+'</div></div>';
+ function isEx(k){return (ITEMS[k]&&ITEMS[k].kind==="exam")||/^(exam|final)/.test(k)}
+ var qzp=0,qzm=0,exp=0,exm=0;qk.forEach(function(k){if(isEx(k)){exp+=G[k].score;exm+=G[k].total}else{qzp+=G[k].score;qzm+=G[k].total}});
+ function stat(v,l,f){return '<div class="stat gst'+(f==null?'':f>=.8?' sg':f>=.6?' sy':' sr')+'"><b>'+v+'</b><span>'+l+'</span></div>'}
+ function qfb(id,k){return G[id]?(REL[id]?'<button class="btn pri" data-go="'+k+':'+id+'">Open graded '+(k==="ex"?'exam':'quiz')+'</button>':'<span class="fbwait">Answers open when your instructor releases them</span>'):''}
+ var h='<div class="card glow hero megr"><div class="hud">My grades</div><h1 style="margin-top:6px">'+esc(window.UAMUSER.n)+'</h1><div class="stats">'+stat(qzm?pct(qzp,qzm):'--','Quizzes',qzm?qzp/qzm:null)+stat(hm?pct(hp,hm):'--','Homework',hm?hp/hm:null)+stat(exm?pct(exp,exm):'--','Exams',exm?exp/exm:null)+stat(all?pct(qp+hp,all):'--','Course grade',all?(qp+hp)/all:null)+'</div><p class="gkey"><i class="kg"></i>80% and above <i class="ky"></i>60 to 79% <i class="kr"></i>below 60% &middot; counts graded work only</p></div>';
  function row(name,g,fb,go){return '<tr class="sturow" data-open="'+go+'" title="Open"><td><span class="alink">'+name+'</span></td><td>'+(g?fmt(g.score)+' / '+g.total:(go.indexOf('hw:')===0&&((SRV.uploads||{})[go.slice(3)]||[]).length?'Turned in, not graded yet':'Not turned in'))+'</td><td>'+(g?pct(g.score,g.total):'&ndash;')+'</td><td>'+(g&&g.date?new Date(g.date).toLocaleDateString():'&ndash;')+'</td><td>'+(fb||'')+'</td></tr>'}
- h+='<h2 class="sectitle">Grades</h2><div class="tscroll"><table class="ttab gbook"><tr><th>Assignment</th><th>Score</th><th>Percent</th><th>Date</th><th>Feedback</th></tr>'+ALLCH.map(function(c){var hg=HG[c.id];return row('Chapter '+chNo(c.id)+' quiz',G[c.id],'','gq:'+c.id)+row('Chapter '+chNo(c.id)+' homework',hg,hg?((hg.comment?'<div class="hwcm">'+esc(hg.comment)+'</div>':'')+(hg.copy?'<button class="btn pri" data-fb="'+c.id+'">Open graded homework</button>':'')):'','hw:'+c.id)}).join("")+Object.keys(ITEMS).filter(function(k){return ITEMS[k].kind==="exam"&&(G[k]||ITEMS[k].status!=="closed")}).concat(Object.keys(G).filter(function(k){return /^exam/.test(k)&&!ITEMS[k]})).map(function(k){return row((ITEMS[k]&&ITEMS[k].title)||'Exam',G[k],'','ex:'+k)}).join("")+'</table></div>';
- h+='<h2 class="sectitle">Study progress</h2><div class="grid g3">'+ALLCH.map(function(c){var n=c.topics.length,d=doneCount(c),rv=c.topics.filter(function(t){return S.rev[t.id]}).length,hw=G._hw&&G._hw[c.id];return '<div class="card mepc"><div class="hud">Chapter '+chNo(c.id)+'</div><h2>'+esc(c.title)+'</h2><div class="meter"><i style="width:'+Math.round(100*d/n)+'%"></i></div><ul><li><b>'+d+' of '+n+'</b> sections mastered</li><li><b>'+rv+'</b> marked needs review</li><li>Homework: <b>'+(hw?'downloaded '+new Date(hw).toLocaleDateString():'not downloaded')+'</b></li></ul></div>'}).join("")+'</div>';
- main.innerHTML=h;main.querySelectorAll("[data-fb]").forEach(function(b){b.onclick=function(e){e.stopPropagation();viewGradedCopy(b.getAttribute("data-fb"))}});
+ h+='<h2 class="sectitle left">Grades</h2><div class="tscroll"><table class="ttab gbook"><tr><th>Assignment</th><th>Score</th><th>Percent</th><th>Date</th><th>Feedback</th></tr>'+ALLCH.map(function(c){var hg=HG[c.id];return row('Chapter '+chNo(c.id)+' quiz',G[c.id],qfb(c.id,'gq'),'gq:'+c.id)+row('Chapter '+chNo(c.id)+' homework',hg,hg?((hg.comment?'<div class="hwcm">'+esc(hg.comment)+'</div>':'')+(hg.copy?'<button class="btn pri" data-fb="'+c.id+'">Open graded homework</button>':'')):'','hw:'+c.id)}).join("")+Object.keys(ITEMS).filter(function(k){return ITEMS[k].kind==="exam"&&(G[k]||ITEMS[k].status!=="closed")}).concat(Object.keys(G).filter(function(k){return /^exam/.test(k)&&!ITEMS[k]})).map(function(k){return row((ITEMS[k]&&ITEMS[k].title)||'Exam',G[k],qfb(k,'ex'),'ex:'+k)}).join("")+'</table></div>';
+ h+='<h2 class="sectitle left">Study progress</h2><div class="grid g3">'+ALLCH.map(function(c){var n=c.topics.length,d=doneCount(c),rv=c.topics.filter(function(t){return S.rev[t.id]}).length,hw=G._hw&&G._hw[c.id];return '<div class="card mepc"><div class="hud">Chapter '+chNo(c.id)+'</div><h2>'+esc(c.title)+'</h2><div class="meter"><i style="width:'+Math.round(100*d/n)+'%"></i></div><ul><li><b>'+d+' of '+n+'</b> sections mastered</li><li><b>'+rv+'</b> marked needs review</li><li>Homework: <b>'+(hw?'downloaded '+new Date(hw).toLocaleDateString():'not downloaded')+'</b></li></ul></div>'}).join("")+'</div>';
+ main.innerHTML=h;main.querySelectorAll("[data-go]").forEach(function(b){b.onclick=function(e){e.stopPropagation();var v=b.getAttribute("data-go").split(":");openItem(v[0],v[1])}});main.querySelectorAll("[data-fb]").forEach(function(b){b.onclick=function(e){e.stopPropagation();viewGradedCopy(b.getAttribute("data-fb"))}});
  wireOpen(main)}
 function wireOpen(box){box.querySelectorAll("[data-open]").forEach(function(r){r.onclick=function(){var v=r.getAttribute("data-open").split(":");openItem(v[0],v[1])}})}
 function openItem(k,id){if(k==="ex"){var ui=-1;UNITS.forEach(function(u,i){if(ITEMS[id]&&ITEMS[id].ch.every(function(c){return u.chs.indexOf(c)>=0}))ui=i});if(ui>=0&&S.u!==ui&&!isAdmin())setUnit(ui);else if(S.u==null&&!isAdmin())setUnit(lastUnit());S.ex=id;go("exam");return}
@@ -852,7 +867,15 @@ function openItem(k,id){if(k==="ex"){var ui=-1;UNITS.forEach(function(u,i){if(IT
 /* ---------- release in order (the class server decides; this only shows it) ---------- */
 function GATE(){return (SRV&&SRV.gate)||{off:true}}
 function gLock(id){if(isAdmin())return "";var g=GATE();if(g.off||!g.seq||g.seq.indexOf(id)<0||g.open[id]||G[id])return "";
- return "This opens after you turn in "+(g.next||[]).map(function(x){var it=ITEMS[x];return it?esc(it.title):x}).join(" and ")+"."}
+ function nm(x){var it=ITEMS[x];return it?esc(it.title):x}
+ var q=g.seq,i=q.indexOf(id);if(id.indexOf("hw:")===0)i=q.indexOf(id.slice(3));var pv=i>0?q[i-1]:null,need=[];
+ if(pv&&pv.indexOf("hw:")===0)need=[pv.slice(3),pv];else if(pv)need=[pv];
+ if(!need.length)need=g.next||[];
+ var msg="This opens after "+need.map(nm).join(" and ")+(need.length>1?" are":" is")+" turned in.";
+ var me=ITEMS[id];if(me&&me.kind==="exam"&&me.ch&&me.ch.length&&me.ch.length<=6){var ns=me.ch.map(chNo);msg="This opens after the quizzes and homework for chapters "+ns.slice(0,-1).join(", ")+" and "+ns[ns.length-1]+" are turned in."}
+ var nx=(g.next||[]).filter(function(x){return need.indexOf(x)<0});
+ if(nx.length&&(g.next||[]).join()!==need.join())msg+=" Your next step: "+(g.next||[]).map(nm).join(" and ")+".";
+ return msg}
 function unitOpen(i){var g=GATE();return isAdmin()||g.off||i<(g.units||1)}
 function unitDone(i){var g=GATE(),u=UNITS[i];return !g.off&&u&&!!(g.open&&ITEMS["exam"+(i+1)]&&(G["exam"+(i+1)]||g.units>i+1||g.open.final))}
 function lastUnit(){var g=GATE();return g.off?0:Math.max(0,Math.min(UNITS.length,g.units||1)-1)}
@@ -913,10 +936,12 @@ function lockHTML(id){var it=ITEMS[id]||{title:id},g=GATE();return '<div class="
 /* ---------- continue where you left off ---------- */
 function lastKey(){return "iobsite:last:"+window.UAMUSER.h}
 document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-t]");if(b&&b.dataset.t){try{localStorage.setItem(lastKey(),b.dataset.t)}catch(x){}}},true);
-function contHTML(){var tid=null;try{tid=localStorage.getItem(lastKey())}catch(x){}if(!tid)return "";
+function contHTML(){var tid=null;try{tid=localStorage.getItem(lastKey())}catch(x){}
  var hit=null;ALLCH.forEach(function(c){if(S.u!=null&&UNITS[S.u]&&UNITS[S.u].chs.indexOf(c.id)<0)return;c.topics.forEach(function(t,i){if(t.id===tid)hit={c:c,t:t,i:i}})});
+ var lbl="Continue where you left off";
+ if(!hit){lbl="Start here";ALLCH.forEach(function(c){if(hit||(S.u!=null&&UNITS[S.u]&&UNITS[S.u].chs.indexOf(c.id)<0))return;c.topics.forEach(function(t,i){if(!hit&&!S.done[t.id])hit={c:c,t:t,i:i}})});if(hit&&Object.keys(S.done).length)lbl="Next section to study"}
  if(!hit)return "";
- return '<button class="card contc" data-t="'+hit.t.id+'"><span class="hud">Continue where you left off</span><b>'+hit.c.num+'.'+(hit.i+1)+' &nbsp;'+esc(hit.t.title)+'</b><span class="contgo">Open &rarr;</span></button>'}
+ return '<button class="card contc" data-t="'+hit.t.id+'"><span class="hud">'+lbl+'</span><b>'+hit.c.num+'.'+(hit.i+1)+' &nbsp;'+esc(hit.t.title)+'</b><span class="contgo">Open &rarr;</span></button>'}
 
 /* ---------- class server: sync, uploads, teacher dashboard ---------- */
 function isAdmin(){return window.UAMUSER&&window.UAMUSER.r==="admin"}
