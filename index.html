@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' blob: https://cdnjs.cloudflare.com; worker-src blob: 'self'; style-src 'unsafe-inline'; img-src 'self' data: blob: https://i.ytimg.com; font-src data:; media-src 'self' blob: mediastream:; connect-src 'self' data: blob: https://script.google.com https://script.google.com https://script.googleusercontent.com https://cdnjs.cloudflare.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'none'; form-action 'self'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#00664a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%2300664a'/%3E%3Ctext x='32' y='41' font-family='Arial,sans-serif' font-weight='700' font-size='22' fill='%23fff' text-anchor='middle'%3EUAM%3C/text%3E%3C/svg%3E">
 <title>Introduction to Organic and Biochemistry</title>
 <style>
 .scard{align-self:start}.g3>.scard{height:100%}
@@ -535,6 +540,57 @@ html.procon body{overflow:hidden}
 .gpages.ro .gink{touch-action:auto;pointer-events:none}
 @media(max-width:860px){.tlay{display:block}.tlmain,.tlside{min-width:0}}
 .gqsaved{background:#fff7e0;border-left:4px solid #e0a800;padding:8px 12px;margin:8px 0;border-radius:4px;color:#3a2f00}
+/* ---------- phones: compact header, topic list as a slide-over panel, readable figures ---------- */
+#qtog{display:none}
+#zoom{position:fixed;inset:0;z-index:200;background:rgba(8,24,16,.94);display:flex;flex-direction:column}
+#zoom .zbar{display:flex;align-items:center;gap:10px;padding:8px 12px;color:#fff;font-family:var(--cond);letter-spacing:.04em;text-transform:uppercase;font-size:14px}
+#zoom .zbar button{margin-left:auto;background:#fff;color:var(--forest);border:0;border-radius:var(--r);padding:8px 14px;font-family:var(--cond);font-size:15px;text-transform:uppercase;cursor:pointer}
+#zoom .zin{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:8px;display:flex}
+#zoom .zin>*{margin:auto;background:#fff;border-radius:var(--r);padding:8px;flex:none;width:max(100%,860px);max-width:none;height:auto;max-height:none}
+#zoom .zin>img{width:auto;min-width:min(100%,860px);max-width:1400px}
+.figx svg,.figx img.figimg,.sldf img,.sldf svg{cursor:zoom-in}
+@media (max-width:700px){
+ .top{padding:6px 10px 0;gap:6px;row-gap:2px;align-items:center}
+ .burger{padding:6px 9px;font-size:13px}
+ .logo{font-size:0!important;flex:none!important;gap:0;padding:0}
+ .logo:before{flex:none;font-size:14px}
+ .logo small{display:none}
+ .whoami{margin-left:auto}
+ .whoami button#whoe{max-width:150px!important}
+ .whoami{gap:6px}.whoami button#whoe{max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+ .whoami #signout{padding:5px 7px;font-size:12px}
+ #qtog{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;background:none;border:1px solid rgba(255,255,255,.45);border-radius:var(--r);color:#fff;cursor:pointer}
+ .search{display:none;order:6}.top.sq .search{display:block;margin:2px 0 8px}
+ .modes{flex-wrap:nowrap!important;justify-content:flex-start!important;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin:0 -10px;padding:0 6px;flex-basis:calc(100% + 20px)!important}
+ .modes::-webkit-scrollbar{display:none}
+ .mbtn{flex:none;padding:9px 10px!important;font-size:13.5px!important;white-space:nowrap}
+ .shell,.shell.nolist{display:block}
+ .side{position:fixed!important;top:0!important;left:0;bottom:0;height:auto!important;width:min(84vw,330px);z-index:60;padding:16px 12px 60px!important;box-shadow:0 0 40px rgba(0,0,0,.35);overflow:auto;overscroll-behavior:contain}
+ .shell:not(.nolist):not(.noside):before{content:"";position:fixed;inset:0;background:rgba(8,24,16,.5);z-index:59}
+ .tl{font-size:15px!important;padding:10px 4px!important;gap:8px!important}.tl .no{width:38px!important;font-size:14px!important}
+ .sechd b{font-size:14px!important}
+ #sidetog{z-index:61;top:auto!important;bottom:96px}
+ .shell.nolist main{padding-left:var(--g)}
+ main{padding-bottom:70px}
+ .tabs{position:sticky;top:var(--toph,84px);z-index:8;background:var(--sheet);margin-left:calc(-1*var(--g));margin-right:calc(-1*var(--g));padding:0 6px;scrollbar-width:none}
+ .tabs::-webkit-scrollbar{display:none}
+ .tab{padding:11px 10px!important}
+ .fig{padding:12px}.figx svg{width:100%;height:auto}
+ .sld{padding:16px 16px 56px!important;min-height:0!important;border-top-width:14px}
+ .sldh{font-size:20px!important}.sldb ul{font-size:15.5px!important}
+ .sldf img,.sldf svg{max-height:none!important;width:100%!important}
+ .fc{height:340px}
+ .btn{min-height:40px}
+ .uimg{width:84px!important;flex-basis:84px!important}
+ input,select,textarea{font-size:16px!important}
+}
+.contc{display:flex;align-items:center;gap:14px;flex-wrap:wrap;width:100%;text-align:left;margin:0 0 22px;padding:14px 18px;border-left:6px solid var(--kelly);cursor:pointer}
+.contc b{font-family:var(--cond);font-size:20px;color:var(--forest);font-weight:600;flex:1;min-width:180px}.contc .hud{flex-basis:100%}.contc .contgo{font-family:var(--cond);text-transform:uppercase;letter-spacing:.05em;color:var(--kelly);font-weight:700}
+.contc:hover{border-color:var(--forest)}
+.foot{padding:20px 22px 26px;border-top:1px solid var(--rule);color:var(--dim);font-size:13px;line-height:1.6;text-align:center;background:var(--sheet)}
+.foot b{font-family:var(--cond);letter-spacing:.04em;text-transform:uppercase;color:var(--forest);font-weight:600}
+#gate .note{color:#4d6856;font-size:13px;line-height:1.5;margin:14px 0 0;border-top:1px solid #e3e8e4;padding-top:12px}
+@media print{.foot{display:none}}
 .sldc{font-size:15px}.shwslide .sldivt{font-size:54px}
 .shwctl{position:absolute;right:18px;bottom:14px;display:flex;gap:8px;align-items:center;opacity:.25;transition:opacity .2s;font-family:var(--cond);color:#fff}
 .shwctl:hover{opacity:1}.shwctl button{background:var(--forest);color:#fff;border:1px solid #fff;border-radius:4px;padding:6px 12px;font-family:var(--cond);font-size:15px;cursor:pointer}.shwctl button[disabled]{opacity:.35}
@@ -568,6 +624,7 @@ html.dark .fr>.de{border-top-color:currentColor}
  <aside class="side" id="side" aria-label="Topics"></aside>
  <main id="main"></main>
 </div>
+<footer class="foot"><b>Introduction to Organic and Biochemistry</b> &middot; Dr. Djamali Muhoza &middot; University of Arkansas at Monticello<br>Your answers, grades and photos are seen only by you and your instructor. Sign out when you finish on a shared computer.</footer>
 <style>
 #gate{position:fixed;inset:0;z-index:10000;background:var(--forest,#00664a);display:flex;align-items:center;justify-content:center;padding:16px}
 #gate .box{background:#fff;color:#10281a;width:100%;max-width:400px;border-radius:8px;border-top:10px solid #00ae6e;padding:28px 26px 22px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
@@ -585,7 +642,7 @@ html.dark .fr>.de{border-top-color:currentColor}
 var API="https://script.google.com/macros/s/AKfycbwDXT7WhWJizNnd-s_oCLefpYPnvI1e_GrrsAm7c4cE3iHUCexUN6aIi6L_zwRJmZmN0w/exec",AS=((location.search.match(/[?&]as=([a-z0-9]{1,20})/i)||[])[1]||"").toLowerCase(),SK="uam_session_iobsite"+(AS?"_"+AS:"");window.UAMAPI=API;window.UAMSK=SK;
 var who=null;try{who=JSON.parse(localStorage.getItem(SK)||"null")}catch(e){}
 if(!who){try{var wn=JSON.parse(window.name||"null");if(wn&&wn.k===SK)who=wn}catch(e){}}
-if(who&&who.h&&who.n){window.UAMUSER=who;return}
+if(who&&who.h&&who.n){var lim=(who.r==="admin"?7:30)*864e5;if(who.t&&Date.now()-who.t>lim){try{localStorage.removeItem(SK)}catch(e){}try{window.name=""}catch(e){}who=null}else{who.t=Date.now();try{localStorage.setItem(SK,JSON.stringify(who))}catch(e){}window.UAMUSER=who;return}}
 function sha256(m){var K=[],H=[],i,j,p=2;function f(x){return (x-Math.floor(x))*4294967296|0}for(var c=0;c<64;p++){for(j=2;j*j<=p;j++)if(p%j===0)break;if(j*j>p){if(c<8)H[c]=f(Math.pow(p,1/2));K[c++]=f(Math.pow(p,1/3))}}
 var b=unescape(encodeURIComponent(m)),l=b.length*8,w=[];b+="\x80";while(b.length%64-56)b+="\x00";for(i=0;i<b.length;i++)w[i>>2]|=b.charCodeAt(i)<<((3-i%4)*8);w.push(0,l);
 function r(x,n){return x>>>n|x<<(32-n)}for(i=0;i<w.length;i+=16){var W=w.slice(i,i+16),a=H.slice(0);for(j=0;j<64;j++){if(j>15){var x=W[j-15],y=W[j-2];W[j]=(r(x,7)^r(x,18)^x>>>3)+W[j-16]+(r(y,17)^r(y,19)^y>>>10)+W[j-7]|0}
@@ -593,13 +650,13 @@ var t1=a[7]+(r(a[4],6)^r(a[4],11)^r(a[4],25))+(a[4]&a[5]^~a[4]&a[6])+K[j]+W[j]|0
 return H.map(function(v){return("00000000"+(v>>>0).toString(16)).slice(-8)}).join("")}
 function sha(t){if(!window.crypto||!crypto.subtle)return Promise.resolve(sha256(t));var b=new TextEncoder().encode(t);return crypto.subtle.digest("SHA-256",b).then(function(d){return Array.prototype.map.call(new Uint8Array(d),function(x){return("0"+x.toString(16)).slice(-2)}).join("")})}
 document.addEventListener("DOMContentLoaded",function(){
- var g=document.createElement("div");g.id="gate";g.innerHTML='<form class="box" autocomplete="on"><img src="u_logo.png" alt="UAM"><h1>Introduction to Organic and Biochemistry</h1><p class="sub">Dr. Djamali Muhoza</p><label for="ue">UAM email</label><input id="ue" type="email" required autocomplete="username"><label for="ui">Student ID</label><input id="ui" type="password" inputmode="numeric" required autocomplete="current-password"><button type="button" id="ugo">Sign in</button><div class="err" id="uerr"></div></form>';
+ var g=document.createElement("div");g.id="gate";g.innerHTML='<form class="box" autocomplete="on"><img src="u_logo.png" alt="UAM"><h1>Introduction to Organic and Biochemistry</h1><p class="sub">Dr. Djamali Muhoza</p><label for="ue">UAM email</label><input id="ue" type="email" required autocomplete="username"><label for="ui">Student ID</label><input id="ui" type="password" inputmode="numeric" required autocomplete="current-password"><button type="button" id="ugo">Sign in</button><div class="err" id="uerr"></div><p class="note">Your answers and grades are seen only by you and your instructor. Sign out when you finish on a shared computer.</p></form>';
  document.body.appendChild(g);
  function go(ev){if(ev)ev.preventDefault();var e=g.querySelector("#ue").value.trim().toLowerCase(),i=g.querySelector("#ui").value.trim();
   var er=g.querySelector("#uerr"),bt=g.querySelector("#ugo");if(!e||!i){er.textContent="Enter your UAM email and student ID.";return}er.textContent="";bt.disabled=true;bt.textContent="Signing in...";
   sha(e+":"+i).then(function(h){return fetch(API,{method:"POST",body:JSON.stringify({action:"login",email:e,h:h})}).then(function(r){return r.json()}).then(function(res){
    if(!res.ok){er.textContent="That email and student ID do not match our class list.";return}
-   var who={e:e,h:h,n:res.user.name,r:res.user.role},ok=false;try{localStorage.setItem(SK,JSON.stringify(who));ok=localStorage.getItem(SK)!==null}catch(x){}if(!ok){try{window.name=JSON.stringify(Object.assign({k:SK},who))}catch(x){}}
+   var who={e:e,h:h,n:res.user.name,r:res.user.role,t:Date.now()},ok=false;try{localStorage.setItem(SK,JSON.stringify(who));ok=localStorage.getItem(SK)!==null}catch(x){}if(!ok){try{window.name=JSON.stringify(Object.assign({k:SK},who))}catch(x){}}
    window.UAMUSER=who;g.remove();window.UAMSTART()})}).catch(function(){er.textContent="Could not reach the class server. Check your internet connection and try again."}).then(function(){bt.disabled=false;bt.textContent="Sign in"})}
  g.querySelector("form").addEventListener("submit",go);g.querySelector("#ugo").addEventListener("click",go);g.querySelectorAll("input").forEach(function(x){x.addEventListener("keydown",function(k){if(k.key==="Enter")go(k)})});
 });
@@ -762,7 +819,7 @@ var SITE=window.SITE||{videos:{},quizzes:{},hw:{}};
 var GK="iobsite:grades:"+window.UAMUSER.h,G={};try{G=JSON.parse(localStorage.getItem(GK)||"{}")}catch(e){}
 function gsave(){try{localStorage.setItem(GK,JSON.stringify(G))}catch(e){}}
 function chOf(t){return t.id.split("-")[0]}
-function chNo(id){var c=ALLCH.filter(function(x){return x.id===id})[0];return c?(c.num===6.5?"6B":c.num):""}
+function chNo(id){var c=ALLCH.filter(function(x){return x.id===id})[0];return c?(c.num===6.5?"6B":c.num):String(id||"").replace(/^ch/,"")}
 function pct(a,b){return Math.round(100*a/b)+"%"}
 function vidHTML(t){var v=SITE.videos[t.id];
  if(!v)return '<div class="vnone">The video for this section will appear here.</div>';
@@ -805,7 +862,7 @@ function pathHTML(){if(isAdmin()||S.u==null||!UNITS[S.u])return "";var u=UNITS[S
  u.chs.forEach(function(c){L.push([c,"gq:"+c,(ITEMS[c]||{}).title||"Chapter "+chNo(c)+" quiz"]);L.push(["hw:"+c,"hw:"+c,(ITEMS["hw:"+c]||{}).title||"Chapter "+chNo(c)+" homework"])});
  if(ITEMS[ex])L.push([ex,"ex:"+ex,ITEMS[ex].title]);
  var TX={done:"Turned in",skip:"Excused",next:"Open now",open:"Open",lock:"Locked"};
- return '<h2 class="sectitle">Your assignments</h2><p class="pathnote">'+(GATE().off?'Work through them in order.':'They open one chapter at a time. Turn in each chapter\'s quiz and homework to open the next chapter. The unit exam opens after all of them, and the next unit opens after the exam.')+'</p><ol class="path">'+L.map(function(x){var st=stepState(x[0]),ch=x[0].replace("hw:","");
+ return contHTML()+'<h2 class="sectitle">Your assignments</h2><p class="pathnote">'+(GATE().off?'Work through them in order.':'They open one chapter at a time. Turn in each chapter\'s quiz and homework to open the next chapter. The unit exam opens after all of them, and the next unit opens after the exam.')+'</p><ol class="path">'+L.map(function(x){var st=stepState(x[0]),ch=x[0].replace("hw:","");
   return '<li class="ps '+st+'"><button '+(st==="lock"?'disabled':'data-open="'+x[1]+'"')+'><span class="psi" aria-hidden="true">'+(st==="done"||st==="skip"?"&#10003;":st==="lock"?"&#128274;&#xFE0E;":"&#9675;")+'</span><span class="pst"><b>'+esc(x[2])+'</b>'+(/^ch/.test(x[0])||/^hw:/.test(x[0])?'<span>Chapter '+chNo(ch)+'</span>':'<span>'+u.chs.map(chNo).join(", ")+'</span>')+'</span><span class="psb">'+TX[st]+'</span></button></li>'}).join("")+'</ol>'}
 
 
@@ -816,6 +873,50 @@ function sideTog(){sideTop();var b=document.getElementById("sidetog"),sh=documen
 document.addEventListener("click",function(e){if(e.target.closest("#sidetog")){document.querySelector(".shell").classList.toggle("nolist");sideTog()}else if(e.target.closest("#burger"))setTimeout(sideTog,0)});
 window.addEventListener("resize",sideTog);
 function lockHTML(id){var it=ITEMS[id]||{title:id},g=GATE();return '<div class="card qgate lockc"><div class="hud">Locked</div><h2>'+esc(it.title)+' is not open yet</h2><p>'+gLock(id)+'</p>'+((g.next||[]).length?'<div class="lockgo">'+g.next.map(function(x){var t=ITEMS[x];return '<button class="btn pri" data-open="'+(x.indexOf("hw:")===0?x:/^exam|^final/.test(x)?"ex:"+x:"gq:"+x)+'">Go to '+esc(t?t.title:x)+'</button>'}).join("")+'</div>':'')+'</div>'}
+/* ---------- phones: topic list opens as a panel, search behind a button, figures open large ---------- */
+(function(){
+ var MQ=window.matchMedia("(max-width:700px)");
+ function isPh(){return MQ.matches}
+ function shell(){return document.querySelector(".shell")}
+ function closeList(){var s=shell();if(s&&isPh()&&!s.classList.contains("nolist")){s.classList.add("nolist");if(typeof sideTog==="function")sideTog()}}
+ function init(){
+  var w=document.querySelector(".whoami");
+  if(w&&!document.getElementById("qtog")){var b=document.createElement("button");b.id="qtog";b.type="button";b.setAttribute("aria-label","Search");b.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>';w.insertBefore(b,w.firstChild)}
+  if(isPh()){var s=shell();if(s)s.classList.add("nolist")}
+  if(typeof toph==="function")toph();if(typeof sideTog==="function")sideTog();
+ }
+ if(document.querySelector(".whoami"))init();else document.addEventListener("DOMContentLoaded",init);
+ window.UAMPHONEINIT=init;
+ MQ.addEventListener&&MQ.addEventListener("change",function(){if(typeof toph==="function")toph();if(typeof sideTog==="function")sideTog()});
+ document.addEventListener("click",function(e){
+  var t=e.target;
+  if(t.closest&&t.closest("#qtog")){var tp=document.querySelector(".top");tp.classList.toggle("sq");if(typeof toph==="function")toph();if(tp.classList.contains("sq")){var q=document.getElementById("q");q&&q.focus()}return}
+  if(isPh()){
+   var s=shell();
+   if(t===s){closeList();return}                                   /* tap on the dimmed page closes the list */
+   if(t.closest("#side")&&t.closest("button,a")&&!t.closest("#sidetog")){setTimeout(closeList,0)}
+   if(t.closest("#modes button")||t.closest("#logo"))setTimeout(closeList,0);
+   var tb=t.closest("[data-tab]");
+   if(tb)setTimeout(function(){var el=document.querySelector(".tabs");if(!el)return;var th=(document.querySelector(".top")||{}).offsetHeight||0,y=el.getBoundingClientRect().top;if(Math.abs(y-th)>6)window.scrollTo(0,window.scrollY+y-th);var on=el.querySelector(".on");if(on&&on.scrollIntoView)on.scrollIntoView({block:"nearest",inline:"center"})},40);
+  }
+  var z=t.closest&&t.closest(".figx svg,.figx img.figimg,.sldf img,.sldf svg");
+  if(z&&!document.getElementById("zoom")&&!t.closest(".shwslide")){
+   var o=document.createElement("div");o.id="zoom";o.setAttribute("role","dialog");o.setAttribute("aria-label","Figure, enlarged");
+   o.innerHTML='<div class="zbar"><span>Figure</span><button type="button" id="zclose">Close</button></div><div class="zin"></div>';
+   var c=z.cloneNode(true);c.removeAttribute("style");c.removeAttribute("width");c.removeAttribute("height");o.querySelector(".zin").appendChild(c);document.body.appendChild(o);document.documentElement.style.overflow="hidden";o.querySelector("#zclose").focus();return}
+  if(t.closest&&(t.closest("#zclose")||t.classList&&t.classList.contains("zin"))){zc()}
+ });
+ function zc(){var o=document.getElementById("zoom");if(o){o.remove();document.documentElement.style.overflow=""}}
+ document.addEventListener("keydown",function(e){if(e.key==="Escape"){zc();closeList()}});
+})();
+
+/* ---------- continue where you left off ---------- */
+function lastKey(){return "iobsite:last:"+window.UAMUSER.h}
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-t]");if(b&&b.dataset.t){try{localStorage.setItem(lastKey(),b.dataset.t)}catch(x){}}},true);
+function contHTML(){var tid=null;try{tid=localStorage.getItem(lastKey())}catch(x){}if(!tid)return "";
+ var hit=null;ALLCH.forEach(function(c){if(S.u!=null&&UNITS[S.u]&&UNITS[S.u].chs.indexOf(c.id)<0)return;c.topics.forEach(function(t,i){if(t.id===tid)hit={c:c,t:t,i:i}})});
+ if(!hit)return "";
+ return '<button class="card contc" data-t="'+hit.t.id+'"><span class="hud">Continue where you left off</span><b>'+hit.c.num+'.'+(hit.i+1)+' &nbsp;'+esc(hit.t.title)+'</b><span class="contgo">Open &rarr;</span></button>'}
 
 /* ---------- class server: sync, uploads, teacher dashboard ---------- */
 function isAdmin(){return window.UAMUSER&&window.UAMUSER.r==="admin"}
