@@ -702,7 +702,7 @@ function txt(r){if(!r.texts)return r.text;var o={chapters:[],videos:{},hw:{}};r.
 window.UAMRECHECK=function(){get("content").then(function(hit){call("content",{ver:hit&&hit.ver}).then(function(r){if(r.ok&&!r.same)put("content",{ver:r.ver,t:txt(r)}).then(function(){document.dispatchEvent(new Event("uam-newunit"))})})}).catch(function(){})};
 window.UAMSTART=function(){
  get("content").then(function(hit){
-  if(hit&&hit.t){apply(JSON.parse(hit.t));window.UAMVERCHECK=function(cv){if(!cv||cv===hit.ver)return;call("content",{ver:hit.ver}).then(function(r){if(r.ok&&!r.same){put("content",{ver:r.ver,t:txt(r)}).then(function(){if(window.UAMBUSY&&window.UAMBUSY())document.dispatchEvent(new Event("uam-newunit"));else location.reload()})}}).catch(function(){})};window.UAMRUN();assets(hit.ver);return}
+  if(hit&&hit.t){apply(JSON.parse(hit.t));window.UAMVERCHECK=function(cv){if(!cv||cv===hit.ver)return;call("content",{ver:hit.ver}).then(function(r){if(r.ok&&!r.same){put("content",{ver:r.ver,t:txt(r)}).then(function(){if(window.UAMBUSY&&window.UAMBUSY())document.dispatchEvent(new Event("uam-newcontent"));else location.reload()})}}).catch(function(){})};window.UAMRUN();assets(hit.ver);return}
   overlay(true);
   call("content",{}).then(function(r){if(!r.ok){overlay(false);document.body.insertAdjacentHTML("beforeend",'<div id="uamload"><div class="ulbox"><p>'+(r.error||"Could not load the course.")+'</p><button onclick="location.reload()">Try again</button></div></div>');return}
    var tt=txt(r);put("content",{ver:r.ver,t:tt});apply(JSON.parse(tt));overlay(false);window.UAMRUN();assets(r.ver)})
@@ -991,7 +991,9 @@ var _pt=null,_pdirty=false;function syncProgress(){if(isAdmin())return;_pdirty=t
 function flushProgress(){if(!_pdirty||isAdmin())return;_pdirty=false;clearTimeout(_pt);var u=window.UAMUSER;try{fetch(window.UAMAPI,{method:"POST",keepalive:true,body:JSON.stringify({action:"progress",email:u.e,h:u.h,progress:{done:S.done,best:S.best,rev:S.rev,sub:S.sub}})}).catch(function(){})}catch(e){}}
 window.addEventListener("pagehide",flushProgress);document.addEventListener("visibilitychange",function(){if(document.hidden)flushProgress()});
 window.addEventListener("beforeunload",function(e){if(QBUSY&&!PROC){e.preventDefault();e.returnValue="";return ""}});
-window.UAMBUSY=function(){return !!(QBUSY||PROC||UPBUSY||document.getElementById("procIntro")||document.getElementById("grader"))};var UPBUSY=false;
+/* busy = the page must not reload by itself: a quiz, an upload, grading, or a section that is open (a reload sent the student back to the dashboard and stopped the video) */
+window.UAMBUSY=function(){return !!(QBUSY||PROC||UPBUSY||document.getElementById("procIntro")||document.getElementById("grader")||document.getElementById("pane")||document.querySelector(".vwrap iframe"))};
+document.addEventListener("uam-newcontent",function(){if(document.getElementById("newunit"))return;var d=document.createElement("div");d.id="newunit";d.innerHTML='<b>The course material was updated.</b><button class="btn pri" id="nuopen">Load the update</button>';document.body.appendChild(d);d.querySelector("#nuopen").onclick=function(){location.reload()}});var UPBUSY=false;
 function gsum(quizzes,grades){var qp=0,qm=0,hp=0,hm=0;Object.keys(quizzes||{}).forEach(function(k){qp+=quizzes[k].score;qm+=quizzes[k].total});Object.keys(grades||{}).forEach(function(k){if(k.split("|")[1]==="homework"){hp+=grades[k].score;hm+=grades[k].total}});return {qp:qp,qm:qm,hp:hp,hm:hm,all:qm+hm?(qp+hp)/(qm+hm):null}}
 function fmtDate(t){return t?new Date(t).toLocaleDateString():"&ndash;"}
 /* homework uploads inside the Homework tab */
