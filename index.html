@@ -759,7 +759,7 @@ function home(){
  var h='<section class="card glow hero">'+(window.UNITS&&UNITS.length?'<button class="backu" data-hub="1">&larr; All units</button>':'')+'<div class="hud">'+homeHud()+'</div><h1 style="margin-top:6px">'+homeTitle()+'</h1>'+
  '<div class="meter big"><i style="width:'+(tot?Math.round(100*dn/tot):0)+'%"></i></div><div class="meta" style="color:inherit">'+dn+' of '+tot+' topics mastered</div></section>'+(typeof pathHTML==="function"?pathHTML():"");
  h+='<h2 class="sectitle">Chapters</h2><div class="grid g3">'+CH.map(function(c){var n=c.topics.length;return '<button class="card glow scard '+th(c)+'" data-ch="'+c.id+'" aria-label="Open chapter '+cnum(c)+'"><div class="hud">Chapter '+cnum(c)+'</div><h2 style="margin-top:4px">'+esc(c.title)+'</h2><div class="meter"><i style="width:'+pct(c)+'%"></i></div><div class="meta">'+doneCount(c)+' of '+n+' topics mastered</div></button>'}).join("")+'</div>';
- h+='<h2 class="sectitle">How to study</h2><ol class="how"><li><b>Slides</b>Go through each chapter\'s slides from the Slides tab at the top.</li><li><b>Sections</b>Open a chapter, then each section: go through its slides, watch the video, then open Study (key ideas, terms, figures and worked examples).</li><li><b>Practice and grades</b>Answer the practice questions, use Flashcards, and mark each topic in Progress. Then do the chapter homework and take the graded quiz.</li></ol>';
+ h+='<h2 class="sectitle">How to study</h2><ol class="how"><li><b>Slides</b>Go through each chapter\'s slides from the Slides tab at the top.</li><li><b>Sections</b>Open a chapter, then each section: go through its slides, watch the video, then open Study (key ideas, terms, figures and worked examples) and Flashcards.</li><li><b>Practice and grades</b>Answer the practice questions, use Flashcards, and mark each topic in Progress. Then do the chapter homework and take the graded quiz.</li></ol>';
  main.innerHTML=h;if(typeof wireOpen==="function")wireOpen(main);
 }
 function setUnit(i){if(window.UAMNEED)UAMNEED(UNITS[i].chs);S.u=i;CH=ALLCH.filter(function(c){return UNITS[i].chs.indexOf(c.id)>=0});TOPICS=[];CH.forEach(function(c){c.topics.forEach(function(t){TOPICS.push(t)})});THEME={};CH.forEach(function(c,k){THEME[c.id]=["t7","t8","t9"][k%3]});S.sch=null;S.sk=0;S.fc=null;S.q=null;S.fcScope="all";S.qzScope="all";try{localStorage.setItem("iobsite:u:"+window.UAMUSER.h,String(i))}catch(e){}}
@@ -770,7 +770,7 @@ function hubView(){
   var nums=u.nums||cs.map(function(c){return c.num});
   return '<button class="card urow'+(op?'':' ulock')+'" '+(op?'data-u="'+i+'"':'disabled')+'><img class="uimg" src="'+u.img+'" alt="" loading="lazy"><div class="ubody"><div class="hud">Unit '+(i+1)+' &middot; Chapters '+nums.join(", ")+'</div><h2>'+esc(u.name)+'</h2><p class="usub">'+esc(u.sub||"")+'</p>'+
    (op?'<div class="meter"><i style="width:'+(nt?Math.round(100*nd/nt):0)+'%"></i></div><div class="meta">'+nd+' of '+nt+' topics mastered'+(dn?' &middot; <b>Exam turned in</b>':'')+'</div>':'<div class="ulk">&#128274;&#xFE0E; Opens after Exam '+i+'</div>')+'</div></button>'}).join("")+
- (fin?'<button class="card urow'+(fl?' ulock':'')+'" '+(fl?'disabled':'data-fin="1"')+'><img class="uimg" src="final.jpg" alt="" loading="lazy"><div class="ubody"><div class="hud">Final &middot; Chapters '+fin.ch[0].replace("ch","")+' to '+fin.ch[fin.ch.length-1].replace("ch","")+'</div><h2>Final Exam</h2><p class="usub">'+fin.n+' questions from all four units'+(fin.proctor?' &middot; proctored':'')+'</p>'+(fg?'<div class="meta"><b>Turned in</b></div>':fl?'<div class="ulk">&#128274;&#xFE0E; Opens after Exam '+UNITS.length+'</div>':'<div class="meta"><b>Open</b>'+(fin.due?' &middot; due '+dueTxt(fin.due):'')+'</div>')+'</div></button>':'')+'</div><p class="credits">Unit pictures from Wikimedia Commons: RandomKatze (CC0), Notre Dame English Club (CC BY-SA 4.0), Arek Socha (CC0), National Human Genome Research Institute (public domain), Ryan McGilchrist (CC BY-SA 2.0).</p>';
+ (fin?'<button class="card urow'+(fl?' ulock':'')+'" '+(fl?'disabled':'data-fin="1"')+'><img class="uimg" src="final.jpg" alt="" loading="lazy"><div class="ubody"><div class="hud">Final &middot; Chapters '+fin.ch[0].replace("ch","")+' to '+fin.ch[fin.ch.length-1].replace("ch","")+'</div><h2>Final Exam</h2><p class="usub">'+fin.n+' questions from all four units'+(fin.proctor?' &middot; proctored':'')+'</p>'+(fg?'<div class="meta"><b>Turned in</b></div>':fl?'<div class="ulk">&#128274;&#xFE0E; Opens after Exam '+UNITS.length+'</div>':'<div class="meta"><b>Open</b>'+(fin.due?' &middot; due '+dueTxt(fin.due):'')+'</div>')+'</div></button>':'')+'</div><p class="credits">Unit pictures from Wikimedia Commons: RandomKatze (CC0), Scott Bauer, USDA (public domain), Jorgegdphoto.com (CC BY-SA 4.0), National Human Genome Research Institute (public domain), Ryan McGilchrist (CC BY-SA 2.0).</p>';
  main.innerHTML=h;
 }
 function cnum(c){return c.num===6.5?"6B":c.num}
@@ -847,9 +847,22 @@ function vidHTML(t){var v=SITE.videos[t.id];
 function hwHTML(cid){var w=SITE.hw[cid];if(!w)return '';
  return '<div class="hwbar"><div><div class="hud">Chapter '+chNo(cid)+' homework</div><b>'+esc(w.name)+'</b><span>'+w.pages.length+' pages</span></div><a class="btn pri" download="'+esc(w.name)+'" href="'+w.url+'" data-hwdl="'+cid+'">Download PDF</a></div><div class="hwpages">'+w.pages.map(function(src,i){return '<img src="'+src+'" alt="Homework page '+(i+1)+'" loading="lazy" decoding="async">'}).join("")+'</div>'}
 function fmt(x){return Math.round(x*10)/10}
+/* Flashcards tab of one section: that section's terms, one card at a time */
+function secFlash(t,p){var f=S.sfc;if(!f||f.tid!==t.id){f=S.sfc={tid:t.id,cards:(t.terms||[]).slice(),i:0,flip:false}}
+ var n=f.cards.length,c=f.cards[f.i];if(!c){p.innerHTML='<p class="dim">This section has no flashcards.</p>';return}
+ p.innerHTML='<div class="hud">Flashcards for this section &middot; '+n+' cards</div><div class="'+th(t._ch)+'"><div class="fcwrap"><div class="fc'+(f.flip?' flip':'')+'" id="sfc" tabindex="0" aria-label="Flashcard, press to flip"><div class="face"><span class="hud">Term</span><div class="tt">'+c.t+'</div></div><div class="face back"><span class="hud">Definition</span><div class="dd">'+c.d+'</div></div></div></div></div>'+
+ '<div class="fctl"><button class="btn" id="sfprev">&larr; Back</button><button class="btn pri" id="sfflip">Flip</button><button class="btn" id="sfnext">Next &rarr;</button><button class="btn" id="sfshuf">Shuffle</button></div><div class="bar" style="max-width:640px;margin:16px auto"><i style="width:'+Math.round(100*(f.i+1)/n)+'%"></i></div><div class="hud" style="text-align:center">Card '+(f.i+1)+' of '+n+' &middot; tap the card to flip it</div>'+
+ '<div class="sel" style="margin-top:14px;justify-content:center"><button class="btn" data-fcn="'+chOf(t)+'">All flashcards for this chapter</button></div>';
+ var card=p.querySelector("#sfc");card.onclick=function(){f.flip=!f.flip;card.classList.toggle("flip")};
+ card.onkeydown=function(e){if(e.key===" "||e.key==="Enter"){e.preventDefault();card.click()}};
+ p.querySelector("#sfflip").onclick=function(){card.click()};
+ p.querySelector("#sfnext").onclick=function(){f.i=(f.i+1)%n;f.flip=false;secFlash(t,p)};
+ p.querySelector("#sfprev").onclick=function(){f.i=(f.i-1+n)%n;f.flip=false;secFlash(t,p)};
+ p.querySelector("#sfshuf").onclick=function(){f.cards=shuffle(f.cards);f.i=0;f.flip=false;secFlash(t,p)}}
 /* topic tabs added after Slides */
 function sitePane(t,p){var c=chOf(t);
  if(S.tab==="vid"){p.innerHTML=vidHTML(t);return true}
+ if(S.tab==="fc"){secFlash(t,p);return true}
  if((S.tab==="hw"||S.tab==="gq")&&gLock(S.tab==="hw"?"hw:"+c:c)){p.innerHTML=lockHTML(S.tab==="hw"?"hw:"+c:c);wireOpen(p);return true}
  if(S.tab==="hw"){var gt=hwGate(c);p.innerHTML=(isAdmin()?"":hwUploadHTML(c,gt))+hwFileHTML(c);hwUploadWire(p,c,function(){pane(t)});hwFileWire(p,c);p.querySelectorAll("[data-hwdl]").forEach(function(a){a.addEventListener("click",function(){G._hw=G._hw||{};G._hw[c]=Date.now();gsave()})});if(!ITEMSOK)loadItems().then(function(){if(S.tab==="hw")pane(t)});return true}
  if(S.tab==="gq"){quizPane(p,c,function(){pane(t)});return true}
@@ -971,7 +984,7 @@ function applyMine(d,withProgress){SRV=d||SRV;SRVOK=true;if(SRV&&SRV.released)RE
 /* one call at start-up; the last answer is kept so pages open instantly next time */
 var BOOTK="iobsite:boot:"+window.UAMUSER.h,QBUSY=false;
 function applyBoot(r,withProgress){ITEMS={};(r.items||[]).forEach(function(i){ITEMS[i.id]=i});ITEMSOK=true;REL=r.released||{};if(r.data)applyMine(r.data,withProgress)}
-function safeRender(){if(QBUSY||PROC||document.getElementById("procIntro")||document.getElementById("grader"))return;var a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return;render()}
+function safeRender(){if(QBUSY||PROC||document.getElementById("procIntro")||document.getElementById("grader")||document.querySelector(".vwrap iframe"))return; /* a background refresh must never rebuild the page under a playing video (it restarted the video) */var a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return;render()}
 function loadMine(){try{var c=JSON.parse(localStorage.getItem(BOOTK)||"null");if(c)applyBoot(c,false)}catch(e){}
  api("boot").then(function(r){if(!r.ok)return;try{localStorage.setItem(BOOTK,JSON.stringify(r))}catch(e){}applyBoot(r,true);safeRender();if(window.UAMVERCHECK)UAMVERCHECK(r.cver)}).catch(function(){})}
 var _pt=null,_pdirty=false;function syncProgress(){if(isAdmin())return;_pdirty=true;clearTimeout(_pt);_pt=setTimeout(function(){_pdirty=false;api("progress",{progress:{done:S.done,best:S.best,rev:S.rev,sub:S.sub}}).catch(function(){_pdirty=true})},2500)}
@@ -3824,7 +3837,7 @@ function figsOf(t){var F=[];if(t.figure&&(t.figure.img||t.figure.svg))F.push(t.f
  var extra=(t.figures||[])[0];
  if(!extra&&/\bvs\.?\b|versus|differen|compar/i.test(t.title)){var x=(t.slides||[]).filter(function(x){return x.img&&(!t.figure||x.img!==t.figure.img)})[0];if(x)extra={img:x.img,caption:x.cap||x.title}}
  if(extra)F.push(extra);return F.slice(0,2)}
-function tabsFor(t){var a=[];if(t.slides&&t.slides.length)a.push(["slides","Slides"]);a.push(["vid","Video"]);a.push(["learn","Study"]);if((t.quiz&&t.quiz.length)||EXS(t).length)a.push(["prac","Practice"]);if(SITE.hw[chOf(t)])a.push(["hw","Homework"]);if((SITE.qch||[]).indexOf(chOf(t))>=0)a.push(["gq","Quiz"]);return a;if(figsOf(t).length)a.push(["fig","Figures"]);if(t.terms&&t.terms.length)a.push(["cards","Terms"]);if(t.quiz&&t.quiz.length)a.push(["quiz","Multiple choice"]);if(EXS(t).length)a.push(["ex","Short answer"]);if(t.slides&&t.slides.length)a.push(["slides","Slides"]);return a}
+function tabsFor(t){var a=[];if(t.slides&&t.slides.length)a.push(["slides","Slides"]);a.push(["vid","Video"]);a.push(["learn","Study"]);if(t.terms&&t.terms.length)a.push(["fc","Flashcards"]);if((t.quiz&&t.quiz.length)||EXS(t).length)a.push(["prac","Practice"]);if(SITE.hw[chOf(t)])a.push(["hw","Homework"]);if((SITE.qch||[]).indexOf(chOf(t))>=0)a.push(["gq","Quiz"]);return a;if(figsOf(t).length)a.push(["fig","Figures"]);if(t.terms&&t.terms.length)a.push(["cards","Terms"]);if(t.quiz&&t.quiz.length)a.push(["quiz","Multiple choice"]);if(EXS(t).length)a.push(["ex","Short answer"]);if(t.slides&&t.slides.length)a.push(["slides","Slides"]);return a}
 function topic(){if(S._slt!==S.tid){S.sl=0;S._slt=S.tid}
  var t=topicById(S.tid);if(!t)return go("home");var c=t._ch;var idx=c.topics.indexOf(t);
  var tabs=tabsFor(t);if(!tabs.some(function(x){return x[0]===S.tab}))S.tab=tabs[0][0];
