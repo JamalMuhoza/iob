@@ -618,6 +618,11 @@ html.procon body{overflow:hidden}
 .ghint[hidden]{display:none}
 .gpages[data-tool=mark] .gink{cursor:copy}
 .gtext{font-family:"UAMHand","Segoe Print","Bradley Hand","Comic Sans MS",cursive!important;font-weight:400!important;min-width:220px}
+.hwann-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px;max-width:860px;margin:0 0 10px;padding:10px 12px;background:var(--sheet);border:1px solid var(--rule);position:sticky;top:var(--toph,0);z-index:5}.hwann-top .hud{margin-right:4px}.hwann-top .btn.on{background:var(--forest);color:#fff;border-color:var(--forest)}.hwann-tip{color:var(--dim);font-size:14px;flex-basis:100%}
+.hwann-pg{position:relative;line-height:0}.hwann-pg img{display:block}.hwann-cv{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}.hwann-on .hwann-cv{pointer-events:auto;touch-action:none;cursor:crosshair}.hwpages[data-mode=text] .hwann-cv{cursor:text}
+.hwann-ta{position:absolute;z-index:3;min-width:160px;line-height:1.25;padding:2px 4px;border:1px dashed #1d3fbf;background:rgba(255,255,255,.9);color:#1d3fbf;font-family:Arial,sans-serif;resize:both}
+.hwann-bot{display:flex;flex-wrap:wrap;align-items:center;gap:10px;max-width:860px;margin:14px 0 6px}
+@media (max-width:700px){.hwann-top{position:static;padding:8px}.hwann-top .btn{padding:6px 10px}.hwann-tip{font-size:13px}}
 .sldc{font-size:15px}.shwslide .sldivt{font-size:54px}
 .shwctl{position:absolute;right:18px;bottom:14px;display:flex;gap:8px;align-items:center;opacity:.25;transition:opacity .2s;font-family:var(--cond);color:#fff}
 .shwctl:hover{opacity:1}.shwctl button{background:var(--forest);color:#fff;border:1px solid #fff;border-radius:4px;padding:6px 12px;font-family:var(--cond);font-size:15px;cursor:pointer}.shwctl button[disabled]{opacity:.35}
@@ -875,7 +880,7 @@ function sitePane(t,p){var c=chOf(t);
  if(S.tab==="vid"){p.innerHTML=vidHTML(t);return true}
  if(S.tab==="fc"){secFlash(t,p);return true}
  if((S.tab==="hw"||S.tab==="gq")&&gLock(S.tab==="hw"?"hw:"+c:c)){p.innerHTML=lockHTML(S.tab==="hw"?"hw:"+c:c);wireOpen(p);return true}
- if(S.tab==="hw"){var gt=hwGate(c);p.innerHTML=(isAdmin()?"":hwUploadHTML(c,gt))+hwFileHTML(c);hwUploadWire(p,c,function(){pane(t)});hwFileWire(p,c);p.querySelectorAll("[data-hwdl]").forEach(function(a){a.addEventListener("click",function(){G._hw=G._hw||{};G._hw[c]=Date.now();gsave()})});if(!ITEMSOK)loadItems().then(function(){if(S.tab==="hw")pane(t)});return true}
+ if(S.tab==="hw"){var gt=hwGate(c);p.innerHTML=(isAdmin()?"":hwUploadHTML(c,gt))+hwFileHTML(c);hwUploadWire(p,c,function(){pane(t)});hwFileWire(p,c);if(!isAdmin()&&typeof hwAnn==="function")hwAnn(p,c,function(){pane(t)},gt);p.querySelectorAll("[data-hwdl]").forEach(function(a){a.addEventListener("click",function(){G._hw=G._hw||{};G._hw[c]=Date.now();gsave()})});if(!ITEMSOK)loadItems().then(function(){if(S.tab==="hw")pane(t)});return true}
  if(S.tab==="gq"){quizPane(p,c,function(){pane(t)});return true}
  return false}
 function meView(){
@@ -3725,6 +3730,68 @@ function printQuiz(it,Q,btn){
  meas.remove();fr.dataset.pages=Lz.pages.length;fr.dataset.fs=Lz.fs;
  if(btn){var bt=btn.textContent;btn.textContent="Opening the print window...";setTimeout(function(){btn.textContent=bt},2500)}
  setTimeout(function(){try{fr.contentWindow.focus();fr.contentWindow.print()}catch(e){}},150)}
+/* ---------- homework: write or type on the homework pages, then turn it in (added Nov 21 2026) ---------- */
+function hwAnn(p,c,redo,gt){var tries=0;(function wait(){if(!document.body.contains(p))return;var box=p.querySelector(".hwpages"),ims=box?[].slice.call(box.querySelectorAll("img")):[];
+ var ready=ims.length&&ims.every(function(im){return im.complete&&im.naturalWidth>40&&im.src.indexOf("data:image/gif")!==0});if(!ready){if(++tries<150)setTimeout(wait,400);return}hwAnnBuild(p,c,redo,gt||{},box,ims)})()}
+function hwAnnKey(c){var u=window.UAMUSER||{};return "uam_hwann_"+(window.UAMSK||"")+"_"+(u.e||"")+"_"+c}
+function hwAnnBuild(p,c,redo,gt,box,ims){if(box.getAttribute("data-ann"))return;box.setAttribute("data-ann","1");
+ var canUp=!!p.querySelector("#hwfile")&&!gt.lock,mode="",ops=[],stack=[],pages=[],dl=p.querySelector("a[data-hwdl]");
+ try{var sv=JSON.parse(localStorage.getItem(hwAnnKey(c))||"null");if(sv&&sv.n===ims.length)ops=sv.ops||[]}catch(e){}
+ ops.forEach(function(){});
+ var top=document.createElement("div");top.className="hwann-top";
+ top.innerHTML='<span class="hud">Work on the pages</span><button class="btn" data-am="pen" title="Write or draw with the mouse, a finger or a stylus">&#9998; Write</button><button class="btn" data-am="text" title="Click on the page where the answer goes, then type">T&nbsp; Type</button><button class="btn" data-am="erase" title="Rub out your own writing">Eraser</button><button class="btn" id="hwaundo">Undo</button><button class="btn" id="hwaclear">Clear all</button><span class="hwann-tip" id="hwatip">Choose Write or Type, then work on the page.</span>';
+ box.parentNode.insertBefore(top,box);
+ ims.forEach(function(im,i){var w=document.createElement("div");w.className="hwann-pg";im.parentNode.insertBefore(w,im);w.appendChild(im);var cv=document.createElement("canvas");cv.width=im.naturalWidth;cv.height=im.naturalHeight;cv.className="hwann-cv";w.appendChild(cv);pages.push({w:w,im:im,cv:cv,cx:cv.getContext("2d")})});
+ var bot=document.createElement("div");bot.className="hwann-bot";
+ bot.innerHTML=(canUp?'<button class="btn pri" id="hwasub">Submit my written homework</button>':'')+(dl?'<a class="btn" id="hwadl" download="'+esc(dl.getAttribute("download")||"homework.pdf")+'" href="'+dl.getAttribute("href")+'">Download PDF</a>':'')+'<button class="btn" id="hwaprint">Print</button>'+(canUp?'<button class="btn" id="hwaup">Upload a scan or photo</button>':'')+'<span class="hwmsg" id="hwamsg">'+(canUp?'':(gt.lock?esc(gt.lock):''))+'</span>';
+ box.parentNode.insertBefore(bot,box.nextSibling);
+ function save(){try{localStorage.setItem(hwAnnKey(c),JSON.stringify({n:pages.length,ops:ops}))}catch(e){}}
+ function lw(pg){return Math.max(2,pg.cv.width/400)}
+ function fs(pg){return Math.round(pg.cv.width/52)}
+ function draw(pg,o){var x=pg.cx;x.save();if(o.t==="s"||o.t==="e"){x.globalCompositeOperation=o.t==="e"?"destination-out":"source-over";x.strokeStyle="#1d3fbf";x.lineWidth=o.t==="e"?lw(pg)*9:lw(pg);x.lineCap="round";x.lineJoin="round";x.beginPath();o.p.forEach(function(q,k){if(k)x.lineTo(q[0],q[1]);else x.moveTo(q[0],q[1])});if(o.p.length===1)x.lineTo(o.p[0][0]+.1,o.p[0][1]);x.stroke()}
+  else if(o.t==="x"){x.fillStyle="#1d3fbf";x.font=fs(pg)+"px Arial, sans-serif";x.textBaseline="top";String(o.s).split("\n").forEach(function(l,k){x.fillText(l,o.x,o.y+k*fs(pg)*1.25)})}x.restore()}
+ function redraw(){pages.forEach(function(pg,i){pg.cx.clearRect(0,0,pg.cv.width,pg.cv.height);ops.forEach(function(o){if(o.g===i)draw(pg,o)})});state()}
+ function state(){var s=p.querySelector("#hwasub");if(s)s.disabled=!ops.length;top.querySelector("#hwaundo").disabled=!ops.length;top.querySelector("#hwaclear").disabled=!ops.length}
+ function setMode(m){mode=mode===m?"":m;top.querySelectorAll("[data-am]").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-am")===mode)});box.classList.toggle("hwann-on",!!mode);box.setAttribute("data-mode",mode);
+  top.querySelector("#hwatip").textContent=mode==="pen"?"Write on the page. The page does not scroll while Write is on; turn it off to scroll.":mode==="text"?"Click on the page where your answer goes, type it, then press Enter.":mode==="erase"?"Rub over your writing to remove it.":"Choose Write or Type, then work on the page."}
+ top.querySelectorAll("[data-am]").forEach(function(b){b.onclick=function(){setMode(b.getAttribute("data-am"))}});
+ top.querySelector("#hwaundo").onclick=function(){ops.pop();redraw();save()};
+ var clr=top.querySelector("#hwaclear");clr.onclick=function(){if(clr.getAttribute("data-sure")){ops=[];redraw();save();clr.removeAttribute("data-sure");clr.textContent="Clear all";return}clr.setAttribute("data-sure","1");clr.textContent="Tap again to clear everything";setTimeout(function(){clr.removeAttribute("data-sure");clr.textContent="Clear all"},4000)};
+ function pt(pg,e){var r=pg.cv.getBoundingClientRect();return [Math.round((e.clientX-r.left)*pg.cv.width/r.width),Math.round((e.clientY-r.top)*pg.cv.height/r.height)]}
+ pages.forEach(function(pg,i){var cur=null;
+  pg.cv.addEventListener("pointerdown",function(e){if(mode==="pen"||mode==="erase"){e.preventDefault();pg.cv.setPointerCapture(e.pointerId);cur={t:mode==="pen"?"s":"e",g:i,p:[pt(pg,e)]};ops.push(cur);draw(pg,cur)}
+   else if(mode==="text"){e.preventDefault();textAt(pg,i,e)}});
+  pg.cv.addEventListener("pointermove",function(e){if(!cur)return;e.preventDefault();cur.p.push(pt(pg,e));pg.cx.save();redrawPage(pg,i);pg.cx.restore()});
+  function end(){if(cur){cur=null;save();state()}}
+  pg.cv.addEventListener("pointerup",end);pg.cv.addEventListener("pointercancel",end)});
+ function redrawPage(pg,i){pg.cx.clearRect(0,0,pg.cv.width,pg.cv.height);ops.forEach(function(o){if(o.g===i)draw(pg,o)})}
+ function textAt(pg,i,e){var q=pt(pg,e),r=pg.cv.getBoundingClientRect(),k=r.width/pg.cv.width,ta=document.createElement("textarea");ta.className="hwann-ta";ta.rows=1;
+  ta.style.left=(e.clientX-r.left)+"px";ta.style.top=(e.clientY-r.top)+"px";ta.style.fontSize=Math.max(12,fs(pg)*k)+"px";ta.placeholder="Type, then Enter";ta.setAttribute("autocomplete","off");ta.setAttribute("autocorrect","off");ta.setAttribute("autocapitalize","off");ta.spellcheck=false;["paste","drop","dragover"].forEach(function(ev){ta.addEventListener(ev,function(x){x.preventDefault()})});ta.addEventListener("beforeinput",function(x){if(/^insertFrom|insertReplacementText/.test(x.inputType||""))x.preventDefault()});pg.w.appendChild(ta);setTimeout(function(){ta.focus()},0);var done=false;
+  function commit(){if(done)return;done=true;var s=ta.value.replace(/\s+$/,"");ta.remove();if(s){var o={t:"x",g:i,x:q[0],y:q[1],s:s};ops.push(o);draw(pg,o);save();state()}}
+  ta.addEventListener("keydown",function(ev){if(ev.key==="Enter"&&!ev.shiftKey){ev.preventDefault();commit()}if(ev.key==="Escape"){ta.value="";commit()}});ta.addEventListener("blur",commit)}
+ function composed(){return pages.map(function(pg){var cv=document.createElement("canvas");cv.width=pg.cv.width;cv.height=pg.cv.height;var x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,cv.width,cv.height);x.drawImage(pg.im,0,0,cv.width,cv.height);x.drawImage(pg.cv,0,0);return cv})}
+ var sb=p.querySelector("#hwasub");if(sb)sb.onclick=function(){if(!ops.length||UPBUSY)return;var msg=p.querySelector("#hwamsg");UPBUSY=true;sb.disabled=true;msg.textContent="Turning in your homework...";
+  try{var pdf=hwAnnPdf(composed().map(function(cv){return {b:b64bytes(cv.toDataURL("image/jpeg",0.82).split(",")[1]),w:cv.width,h:cv.height}}))}catch(err){UPBUSY=false;sb.disabled=false;msg.textContent="Could not make the file. Use Download PDF instead.";return}
+  api("upload",{chapter:c,filename:"Chapter "+chNo(c)+" homework (written on the page).pdf",mime:"application/pdf",b64:hwAnnB64(pdf),code:(p.querySelector("#hwcode")||{}).value||""}).then(function(r){UPBUSY=false;if(r.ok){applyMine(r.data);try{localStorage.removeItem(hwAnnKey(c))}catch(e){}redo()}else{sb.disabled=false;msg.textContent=r.error||"Upload failed."}}).catch(function(){UPBUSY=false;sb.disabled=false;msg.textContent="Could not reach the class server. Try again."})};
+ p.querySelector("#hwaprint").onclick=function(){var fr=document.createElement("iframe");fr.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";document.body.appendChild(fr);var d=fr.contentDocument;
+  d.open();d.write('<!doctype html><html><head><style>@page{margin:0}body{margin:0}img{display:block;width:100%;page-break-after:always}img:last-child{page-break-after:auto}</style></head><body>'+composed().map(function(cv){return '<img src="'+cv.toDataURL("image/jpeg",0.9)+'">'}).join("")+'</body></html>');d.close();
+  setTimeout(function(){try{fr.contentWindow.focus();fr.contentWindow.print()}catch(e){}setTimeout(function(){fr.remove()},60000)},500)};
+ var ub=p.querySelector("#hwaup");if(ub)ub.onclick=function(){var f=p.querySelector("#hwfile");if(f){f.closest(".hwup").scrollIntoView({block:"center"});f.click()}};
+ if(dl){var da=p.querySelector("#hwadl");if(da&&window.G)da.addEventListener("click",function(){G._hw=G._hw||{};G._hw[c]=Date.now();if(typeof gsave==="function")gsave()})}
+ redraw()}
+function hwAnnB64(u8){var s="",k=0;for(;k<u8.length;k+=32768)s+=String.fromCharCode.apply(null,u8.subarray(k,k+32768));return btoa(s)}
+function hwAnnPdf(imgs){var parts=[],off=0,xref=[],enc=function(s){var u=new Uint8Array(s.length);for(var i=0;i<s.length;i++)u[i]=s.charCodeAt(i)&255;return u};
+ function add(x){var u=typeof x==="string"?enc(x):x;parts.push(u);off+=u.length}
+ function obj(n,body,stream){xref[n]=off;add(n+" 0 obj\n"+body);if(stream){add("\nstream\n");add(stream);add("\nendstream")}add("\nendobj\n")}
+ add("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");var n=imgs.length,kids=[];for(var i=0;i<n;i++)kids.push((3+3*i)+" 0 R");
+ obj(1,"<< /Type /Catalog /Pages 2 0 R >>");obj(2,"<< /Type /Pages /Kids ["+kids.join(" ")+"] /Count "+n+" >>");
+ imgs.forEach(function(im,i){var pw=612,ph=Math.round(612*im.h/im.w*100)/100,po=3+3*i,co=po+1,io=po+2,cs="q "+pw+" 0 0 "+ph+" 0 0 cm /Im0 Do Q";
+  obj(po,"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 "+pw+" "+ph+"] /Resources << /XObject << /Im0 "+io+" 0 R >> >> /Contents "+co+" 0 R >>");
+  obj(co,"<< /Length "+cs.length+" >>",enc(cs));
+  obj(io,"<< /Type /XObject /Subtype /Image /Width "+im.w+" /Height "+im.h+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+im.b.length+" >>",im.b)});
+ var xo=off,tot=3*n+3;add("xref\n0 "+tot+"\n0000000000 65535 f \n");for(var j=1;j<tot;j++)add(("0000000000"+xref[j]).slice(-10)+" 00000 n \n");
+ add("trailer\n<< /Size "+tot+" /Root 1 0 R >>\nstartxref\n"+xo+"\n%%EOF\n");
+ var out=new Uint8Array(off),q=0;parts.forEach(function(u){out.set(u,q);q+=u.length});return out}
 
 /* ---------- teacher dashboard: assignments first, students separate ---------- */
 /* the whole class in one call, kept so dashboard pages draw instantly and refresh in the background */
