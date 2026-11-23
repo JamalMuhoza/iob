@@ -623,6 +623,11 @@ html.procon body{overflow:hidden}
 .hwann-ta{position:absolute;z-index:3;min-width:160px;line-height:1.25;padding:2px 4px;border:1px dashed #1d3fbf;background:rgba(255,255,255,.9);color:#1d3fbf;font-family:Arial,sans-serif;resize:both}
 .hwann-bot{display:flex;flex-wrap:wrap;align-items:center;gap:10px;max-width:860px;margin:14px 0 6px}
 @media (max-width:700px){.hwann-top{position:static;padding:8px}.hwann-top .btn{padding:6px 10px}.hwann-tip{font-size:13px}}
+.sldfit{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border:1px solid var(--rule);border-radius:var(--r);background:var(--sheet)}.sldfit>.sldin{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0}
+.sldfit .sld{width:1280px!important;height:720px!important;min-height:0!important;max-width:none!important;aspect-ratio:auto!important;border:0!important;border-top:30px solid var(--forest)!important;border-radius:0!important;overflow:hidden!important;padding:26px 46px 62px!important;margin:0!important}
+.sldfit .sldh{font-size:40px!important}.sldfit .sldb ul{font-size:24px;line-height:1.4}.sldfit .sldb li{margin-bottom:10px}.sldfit .sldb{flex:1 1 auto!important;min-height:0!important}.sldfit .sldf{height:auto!important;max-height:100%}.sldfit .sldf img,.sldfit .sldf svg{max-height:520px!important;width:auto;max-width:100%}
+.sldfit .sldivt{font-size:54px!important}.sldfit .sldov{font-size:24px}.sldfit .sldby{font-size:22px}.sldfit .sldc{font-size:15px!important}.sldfit .sldft{height:46px;font-size:15px}.sldfit .sldn{font-size:15px}
+.tsubbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 14px;padding:12px 14px;border:1px solid var(--rule);background:var(--sheet)}.tsubbar .dim{font-size:14px}
 .sldc{font-size:15px}.shwslide .sldivt{font-size:54px}
 .shwctl{position:absolute;right:18px;bottom:14px;display:flex;gap:8px;align-items:center;opacity:.25;transition:opacity .2s;font-family:var(--cond);color:#fff}
 .shwctl:hover{opacity:1}.shwctl button{background:var(--forest);color:#fff;border:1px solid #fff;border-radius:4px;padding:6px 12px;font-family:var(--cond);font-size:15px;cursor:pointer}.shwctl button[disabled]{opacity:.35}
@@ -880,8 +885,8 @@ function sitePane(t,p){var c=chOf(t);
  if(S.tab==="vid"){p.innerHTML=vidHTML(t);return true}
  if(S.tab==="fc"){secFlash(t,p);return true}
  if((S.tab==="hw"||S.tab==="gq")&&gLock(S.tab==="hw"?"hw:"+c:c)){p.innerHTML=lockHTML(S.tab==="hw"?"hw:"+c:c);wireOpen(p);return true}
- if(S.tab==="hw"){var gt=hwGate(c);p.innerHTML=(isAdmin()?"":hwUploadHTML(c,gt))+hwFileHTML(c);hwUploadWire(p,c,function(){pane(t)});hwFileWire(p,c);if(!isAdmin()&&typeof hwAnn==="function")hwAnn(p,c,function(){pane(t)},gt);p.querySelectorAll("[data-hwdl]").forEach(function(a){a.addEventListener("click",function(){G._hw=G._hw||{};G._hw[c]=Date.now();gsave()})});if(!ITEMSOK)loadItems().then(function(){if(S.tab==="hw")pane(t)});return true}
- if(S.tab==="gq"){quizPane(p,c,function(){pane(t)});return true}
+ if(S.tab==="hw"){var gt=hwGate(c);p.innerHTML=(isAdmin()?"":hwUploadHTML(c,gt))+hwFileHTML(c);hwUploadWire(p,c,function(){pane(t)});hwFileWire(p,c);if(typeof hwAnn==="function")hwAnn(p,c,function(){pane(t)},gt);if(typeof tSubBtn==="function")tSubBtn(p,"hw",c);p.querySelectorAll("[data-hwdl]").forEach(function(a){a.addEventListener("click",function(){G._hw=G._hw||{};G._hw[c]=Date.now();gsave()})});if(!ITEMSOK)loadItems().then(function(){if(S.tab==="hw")pane(t)});return true}
+ if(S.tab==="gq"){quizPane(p,c,function(){pane(t)});if(typeof tSubBtn==="function")tSubBtn(p,"quiz",c);return true}
  return false}
 function meView(){
  var qk=Object.keys(G).filter(function(k){return k.charAt(0)!=="_"&&G[k]&&G[k].total}),qp=0,qm=0;qk.forEach(function(k){qp+=G[k].score;qm+=G[k].total});
@@ -3743,7 +3748,7 @@ function hwAnnBuild(p,c,redo,gt,box,ims){if(box.getAttribute("data-ann"))return;
  box.parentNode.insertBefore(top,box);
  ims.forEach(function(im,i){var w=document.createElement("div");w.className="hwann-pg";im.parentNode.insertBefore(w,im);w.appendChild(im);var cv=document.createElement("canvas");cv.width=im.naturalWidth;cv.height=im.naturalHeight;cv.className="hwann-cv";w.appendChild(cv);pages.push({w:w,im:im,cv:cv,cx:cv.getContext("2d")})});
  var bot=document.createElement("div");bot.className="hwann-bot";
- bot.innerHTML=(canUp?'<button class="btn pri" id="hwasub">Submit my written homework</button>':'')+(dl?'<a class="btn" id="hwadl" download="'+esc(dl.getAttribute("download")||"homework.pdf")+'" href="'+dl.getAttribute("href")+'">Download PDF</a>':'')+'<button class="btn" id="hwaprint">Print</button>'+(canUp?'<button class="btn" id="hwaup">Upload a scan or photo</button>':'')+'<span class="hwmsg" id="hwamsg">'+(canUp?'':(gt.lock?esc(gt.lock):''))+'</span>';
+ bot.innerHTML=(canUp?'<button class="btn pri" id="hwasub">Submit my written homework</button>':'')+(dl?'<a class="btn" id="hwadl" download="'+esc(dl.getAttribute("download")||"homework.pdf")+'" href="'+dl.getAttribute("href")+'">Download PDF</a>':'')+'<button class="btn" id="hwaprint">Print</button>'+(canUp?'<button class="btn" id="hwaup">Upload a scan or photo</button>':'')+'<span class="hwmsg" id="hwamsg">'+(canUp?'':(typeof isAdmin==="function"&&isAdmin()?'Teacher preview: students also get Submit my written homework and Upload a scan or photo here.':(gt.lock?esc(gt.lock):'')))+'</span>';
  box.parentNode.insertBefore(bot,box.nextSibling);
  function save(){try{localStorage.setItem(hwAnnKey(c),JSON.stringify({n:pages.length,ops:ops}))}catch(e){}}
  function lw(pg){return Math.max(2,pg.cv.width/400)}
@@ -3792,6 +3797,18 @@ function hwAnnPdf(imgs){var parts=[],off=0,xref=[],enc=function(s){var u=new Uin
  var xo=off,tot=3*n+3;add("xref\n0 "+tot+"\n0000000000 65535 f \n");for(var j=1;j<tot;j++)add(("0000000000"+xref[j]).slice(-10)+" 00000 n \n");
  add("trailer\n<< /Size "+tot+" /Root 1 0 R >>\nstartxref\n"+xo+"\n%%EOF\n");
  var out=new Uint8Array(off),q=0;parts.forEach(function(u){out.set(u,q);q+=u.length});return out}
+/* ---------- slides: every slide in the same 16:9 frame, whole slide scaled to fit (added Nov 23 2026) ---------- */
+function sldFitAll(){document.querySelectorAll(".sldeck > .sld").forEach(function(sl){var fr=document.createElement("div");fr.className="sldfit";var inn=document.createElement("div");inn.className="sldin";sl.parentNode.insertBefore(fr,sl);fr.appendChild(inn);inn.appendChild(sl)});
+ document.querySelectorAll(".sldfit").forEach(function(fr){var inn=fr.firstChild,w=fr.clientWidth;if(!w||!inn)return;inn.style.transform="scale("+(w/1280)+")";var sl=inn.firstChild;if(sl&&!sl.getAttribute("data-fit")){sl.setAttribute("data-fit","1");sldShrink(sl)}})}
+function sldShrink(sl){var b=sl.querySelector(".sldb ul,.sldov,.sldb");if(!b)return;var fs=24,k=0;function over(){return sl.scrollHeight>sl.clientHeight+2}
+ while(over()&&k++<16){fs-=1.5;sl.querySelectorAll(".sldb ul,.sldov").forEach(function(u){u.style.fontSize=fs+"px"});var im=sl.querySelector(".sldf img,.sldf svg");if(im&&k>3){im.style.setProperty("max-height",Math.max(260,520-(k-3)*45)+"px","important")}}}
+(function(){var t=null;function go(){t=null;try{sldFitAll()}catch(e){}}function q(){if(!t)t=setTimeout(go,30)}
+ try{new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var a=ms[i].addedNodes;for(var j=0;j<a.length;j++){var n=a[j];if(n.nodeType===1&&(n.classList.contains("sldeck")||n.querySelector&&n.querySelector(".sldeck")||n.closest&&n.closest(".sldeck"))){q();return}}}}).observe(document.body,{childList:true,subtree:true})}catch(e){}
+ window.addEventListener("resize",q);document.addEventListener("load",function(e){var f=e.target&&e.target.closest&&e.target.closest(".sldfit");if(f){var sl=f.querySelector(".sld");if(sl)sl.removeAttribute("data-fit");q()}},true);q()})();
+/* ---------- teacher: from a chapter's Homework or Quiz tab, one click to the student submissions (added Nov 23 2026) ---------- */
+function tSubBtn(p,kind,c){if(!(typeof isAdmin==="function"&&isAdmin()))return;var n=0;function put(){if(!document.body.contains(p))return;if(!p.querySelector(".tsubbar")){var d=document.createElement("div");d.className="tsubbar";
+  d.innerHTML='<button class="btn pri" type="button">'+(kind==="hw"?"Student homework submissions":"Student quiz submissions")+' &rarr;</button><span class="dim">See who turned it in, open their work and grade it.</span>';
+  d.querySelector("button").onclick=function(){S.tc=kind;S.ti=c;go("titem")};p.insertBefore(d,p.firstChild)}if(++n<20)setTimeout(put,500)}put()}
 
 /* ---------- teacher dashboard: assignments first, students separate ---------- */
 /* the whole class in one call, kept so dashboard pages draw instantly and refresh in the background */
