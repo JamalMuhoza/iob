@@ -628,6 +628,14 @@ html.procon body{overflow:hidden}
 .sldfit .sldh{font-size:40px!important}.sldfit .sldb ul{font-size:24px;line-height:1.4}.sldfit .sldb li{margin-bottom:10px}.sldfit .sldb{flex:1 1 auto!important;min-height:0!important}.sldfit .sldf{height:auto!important;max-height:100%}.sldfit .sldf img,.sldfit .sldf svg{max-height:520px!important;width:auto;max-width:100%}
 .sldfit .sldivt{font-size:54px!important}.sldfit .sldov{font-size:24px}.sldfit .sldby{font-size:22px}.sldfit .sldc{font-size:15px!important}.sldfit .sldft{height:46px;font-size:15px}.sldfit .sldn{font-size:15px}
 .tsubbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 14px;padding:12px 14px;border:1px solid var(--rule);background:var(--sheet)}.tsubbar .dim{font-size:14px}
+.sldfit .sld{display:flex!important;flex-direction:column!important}.sldfit .sldh{flex:none}
+.sldfit .sldb{flex:1 1 0!important;min-height:0!important;display:block!important;overflow:hidden}.sldfit .sldb ul,.sldfit .sldb ol{font-size:24px!important;line-height:1.4!important}
+.sldfit .sldb.two{display:grid!important;grid-template-columns:1fr 1.15fr!important;grid-template-rows:100%!important;gap:24px!important;align-items:center!important;height:100%!important}
+.sldfit .sldf{height:100%!important;max-height:100%!important;min-height:0!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important}
+.sldfit .sldf img,.sldfit .sldf svg{flex:0 1 auto;min-height:0;max-height:100%!important;max-width:100%!important;width:auto!important;height:auto;object-fit:contain}.sldfit .sldf svg{width:100%!important}
+.sldfit .sldc{flex:none;margin-top:6px}
+.sldfit .sldf:has(.sldc) img,.sldfit .sldf:has(.sldc) svg{max-height:calc(100% - 46px)!important}
+.hwann-tip:empty{display:none}
 .sldc{font-size:15px}.shwslide .sldivt{font-size:54px}
 .shwctl{position:absolute;right:18px;bottom:14px;display:flex;gap:8px;align-items:center;opacity:.25;transition:opacity .2s;font-family:var(--cond);color:#fff}
 .shwctl:hover{opacity:1}.shwctl button{background:var(--forest);color:#fff;border:1px solid #fff;border-radius:4px;padding:6px 12px;font-family:var(--cond);font-size:15px;cursor:pointer}.shwctl button[disabled]{opacity:.35}
@@ -885,7 +893,7 @@ function sitePane(t,p){var c=chOf(t);
  if(S.tab==="vid"){p.innerHTML=vidHTML(t);return true}
  if(S.tab==="fc"){secFlash(t,p);return true}
  if((S.tab==="hw"||S.tab==="gq")&&gLock(S.tab==="hw"?"hw:"+c:c)){p.innerHTML=lockHTML(S.tab==="hw"?"hw:"+c:c);wireOpen(p);return true}
- if(S.tab==="hw"){var gt=hwGate(c);p.innerHTML=(isAdmin()?"":hwUploadHTML(c,gt))+hwFileHTML(c);hwUploadWire(p,c,function(){pane(t)});hwFileWire(p,c);if(typeof hwAnn==="function")hwAnn(p,c,function(){pane(t)},gt);if(typeof tSubBtn==="function")tSubBtn(p,"hw",c);p.querySelectorAll("[data-hwdl]").forEach(function(a){a.addEventListener("click",function(){G._hw=G._hw||{};G._hw[c]=Date.now();gsave()})});if(!ITEMSOK)loadItems().then(function(){if(S.tab==="hw")pane(t)});return true}
+ if(S.tab==="hw"){var gt=hwGate(c);p.innerHTML=(isAdmin()?"":hwUploadHTML(c,gt))+hwFileHTML(c);hwUploadWire(p,c,function(){pane(t)});hwFileWire(p,c);if(typeof hwAnn==="function")hwAnn(p,c,function(){pane(t)},gt);if(typeof hwAnn==="function")hwAnn(p,c,function(){pane(t)},gt);if(typeof tSubBtn==="function")tSubBtn(p,"hw",c);p.querySelectorAll("[data-hwdl]").forEach(function(a){a.addEventListener("click",function(){G._hw=G._hw||{};G._hw[c]=Date.now();gsave()})});if(!ITEMSOK)loadItems().then(function(){if(S.tab==="hw")pane(t)});return true}
  if(S.tab==="gq"){quizPane(p,c,function(){pane(t)});if(typeof tSubBtn==="function")tSubBtn(p,"quiz",c);return true}
  return false}
 function meView(){
@@ -3744,12 +3752,10 @@ function hwAnnBuild(p,c,redo,gt,box,ims){if(box.getAttribute("data-ann"))return;
  try{var sv=JSON.parse(localStorage.getItem(hwAnnKey(c))||"null");if(sv&&sv.n===ims.length)ops=sv.ops||[]}catch(e){}
  ops.forEach(function(){});
  var top=document.createElement("div");top.className="hwann-top";
- top.innerHTML='<span class="hud">Work on the pages</span><button class="btn" data-am="pen" title="Write or draw with the mouse, a finger or a stylus">&#9998; Write</button><button class="btn" data-am="text" title="Click on the page where the answer goes, then type">T&nbsp; Type</button><button class="btn" data-am="erase" title="Rub out your own writing">Eraser</button><button class="btn" id="hwaundo">Undo</button><button class="btn" id="hwaclear">Clear all</button><span class="hwann-tip" id="hwatip">Choose Write or Type, then work on the page.</span>';
+ top.innerHTML='<button class="btn" data-am="pen" title="Write or draw with the mouse, a finger or a stylus">&#9998; Write</button><button class="btn" data-am="text" title="Click on the page where the answer goes, then type">T&nbsp; Type</button><button class="btn" data-am="erase">Eraser</button><button class="btn" id="hwaundo">Undo</button><button class="btn" id="hwaclear">Clear all</button>'+(canUp?'<button class="btn pri" id="hwasub">Submit</button>':'')+(dl?'<a class="btn" id="hwadl" download="'+esc(dl.getAttribute("download")||"homework.pdf")+'" href="'+dl.getAttribute("href")+'">Download</a>':'')+(canUp?'<button class="btn" id="hwaup">Upload</button>':'')+'<span class="hwmsg" id="hwamsg">'+(canUp?'':(typeof isAdmin==="function"&&isAdmin()?'Teacher preview: students also get Submit and Upload here.':(gt.lock?esc(gt.lock):'')))+'</span><span class="hwann-tip" id="hwatip"></span>';
  box.parentNode.insertBefore(top,box);
  ims.forEach(function(im,i){var w=document.createElement("div");w.className="hwann-pg";im.parentNode.insertBefore(w,im);w.appendChild(im);var cv=document.createElement("canvas");cv.width=im.naturalWidth;cv.height=im.naturalHeight;cv.className="hwann-cv";w.appendChild(cv);pages.push({w:w,im:im,cv:cv,cx:cv.getContext("2d")})});
- var bot=document.createElement("div");bot.className="hwann-bot";
- bot.innerHTML=(canUp?'<button class="btn pri" id="hwasub">Submit my written homework</button>':'')+(dl?'<a class="btn" id="hwadl" download="'+esc(dl.getAttribute("download")||"homework.pdf")+'" href="'+dl.getAttribute("href")+'">Download PDF</a>':'')+'<button class="btn" id="hwaprint">Print</button>'+(canUp?'<button class="btn" id="hwaup">Upload a scan or photo</button>':'')+'<span class="hwmsg" id="hwamsg">'+(canUp?'':(typeof isAdmin==="function"&&isAdmin()?'Teacher preview: students also get Submit my written homework and Upload a scan or photo here.':(gt.lock?esc(gt.lock):'')))+'</span>';
- box.parentNode.insertBefore(bot,box.nextSibling);
+ if(dl)dl.style.display="none";var pk=p.querySelector(".hwpick");if(pk)pk.style.display="none";var hp=p.querySelector(".hwup");if(hp)[].slice.call(hp.querySelectorAll("p")).forEach(function(x){if(/^Upload your completed/.test(x.textContent))x.style.display="none"});
  function save(){try{localStorage.setItem(hwAnnKey(c),JSON.stringify({n:pages.length,ops:ops}))}catch(e){}}
  function lw(pg){return Math.max(2,pg.cv.width/400)}
  function fs(pg){return Math.round(pg.cv.width/52)}
@@ -3758,7 +3764,7 @@ function hwAnnBuild(p,c,redo,gt,box,ims){if(box.getAttribute("data-ann"))return;
  function redraw(){pages.forEach(function(pg,i){pg.cx.clearRect(0,0,pg.cv.width,pg.cv.height);ops.forEach(function(o){if(o.g===i)draw(pg,o)})});state()}
  function state(){var s=p.querySelector("#hwasub");if(s)s.disabled=!ops.length;top.querySelector("#hwaundo").disabled=!ops.length;top.querySelector("#hwaclear").disabled=!ops.length}
  function setMode(m){mode=mode===m?"":m;top.querySelectorAll("[data-am]").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-am")===mode)});box.classList.toggle("hwann-on",!!mode);box.setAttribute("data-mode",mode);
-  top.querySelector("#hwatip").textContent=mode==="pen"?"Write on the page. The page does not scroll while Write is on; turn it off to scroll.":mode==="text"?"Click on the page where your answer goes, type it, then press Enter.":mode==="erase"?"Rub over your writing to remove it.":"Choose Write or Type, then work on the page."}
+  top.querySelector("#hwatip").textContent=mode==="pen"?"Write on the page. Tap Write again to scroll.":mode==="text"?"Click where the answer goes, type, press Enter.":mode==="erase"?"Rub over your writing to remove it.":""}
  top.querySelectorAll("[data-am]").forEach(function(b){b.onclick=function(){setMode(b.getAttribute("data-am"))}});
  top.querySelector("#hwaundo").onclick=function(){ops.pop();redraw();save()};
  var clr=top.querySelector("#hwaclear");clr.onclick=function(){if(clr.getAttribute("data-sure")){ops=[];redraw();save();clr.removeAttribute("data-sure");clr.textContent="Clear all";return}clr.setAttribute("data-sure","1");clr.textContent="Tap again to clear everything";setTimeout(function(){clr.removeAttribute("data-sure");clr.textContent="Clear all"},4000)};
@@ -3778,9 +3784,6 @@ function hwAnnBuild(p,c,redo,gt,box,ims){if(box.getAttribute("data-ann"))return;
  var sb=p.querySelector("#hwasub");if(sb)sb.onclick=function(){if(!ops.length||UPBUSY)return;var msg=p.querySelector("#hwamsg");UPBUSY=true;sb.disabled=true;msg.textContent="Turning in your homework...";
   try{var pdf=hwAnnPdf(composed().map(function(cv){return {b:b64bytes(cv.toDataURL("image/jpeg",0.82).split(",")[1]),w:cv.width,h:cv.height}}))}catch(err){UPBUSY=false;sb.disabled=false;msg.textContent="Could not make the file. Use Download PDF instead.";return}
   api("upload",{chapter:c,filename:"Chapter "+chNo(c)+" homework (written on the page).pdf",mime:"application/pdf",b64:hwAnnB64(pdf),code:(p.querySelector("#hwcode")||{}).value||""}).then(function(r){UPBUSY=false;if(r.ok){applyMine(r.data);try{localStorage.removeItem(hwAnnKey(c))}catch(e){}redo()}else{sb.disabled=false;msg.textContent=r.error||"Upload failed."}}).catch(function(){UPBUSY=false;sb.disabled=false;msg.textContent="Could not reach the class server. Try again."})};
- p.querySelector("#hwaprint").onclick=function(){var fr=document.createElement("iframe");fr.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";document.body.appendChild(fr);var d=fr.contentDocument;
-  d.open();d.write('<!doctype html><html><head><style>@page{margin:0}body{margin:0}img{display:block;width:100%;page-break-after:always}img:last-child{page-break-after:auto}</style></head><body>'+composed().map(function(cv){return '<img src="'+cv.toDataURL("image/jpeg",0.9)+'">'}).join("")+'</body></html>');d.close();
-  setTimeout(function(){try{fr.contentWindow.focus();fr.contentWindow.print()}catch(e){}setTimeout(function(){fr.remove()},60000)},500)};
  var ub=p.querySelector("#hwaup");if(ub)ub.onclick=function(){var f=p.querySelector("#hwfile");if(f){f.closest(".hwup").scrollIntoView({block:"center"});f.click()}};
  if(dl){var da=p.querySelector("#hwadl");if(da&&window.G)da.addEventListener("click",function(){G._hw=G._hw||{};G._hw[c]=Date.now();if(typeof gsave==="function")gsave()})}
  redraw()}
@@ -3800,8 +3803,9 @@ function hwAnnPdf(imgs){var parts=[],off=0,xref=[],enc=function(s){var u=new Uin
 /* ---------- slides: every slide in the same 16:9 frame, whole slide scaled to fit (added Nov 23 2026) ---------- */
 function sldFitAll(){document.querySelectorAll(".sldeck > .sld").forEach(function(sl){var fr=document.createElement("div");fr.className="sldfit";var inn=document.createElement("div");inn.className="sldin";sl.parentNode.insertBefore(fr,sl);fr.appendChild(inn);inn.appendChild(sl)});
  document.querySelectorAll(".sldfit").forEach(function(fr){var inn=fr.firstChild,w=fr.clientWidth;if(!w||!inn)return;inn.style.transform="scale("+(w/1280)+")";var sl=inn.firstChild;if(sl&&!sl.getAttribute("data-fit")){sl.setAttribute("data-fit","1");sldShrink(sl)}})}
-function sldShrink(sl){var b=sl.querySelector(".sldb ul,.sldov,.sldb");if(!b)return;var fs=24,k=0;function over(){return sl.scrollHeight>sl.clientHeight+2}
- while(over()&&k++<16){fs-=1.5;sl.querySelectorAll(".sldb ul,.sldov").forEach(function(u){u.style.fontSize=fs+"px"});var im=sl.querySelector(".sldf img,.sldf svg");if(im&&k>3){im.style.setProperty("max-height",Math.max(260,520-(k-3)*45)+"px","important")}}}
+function sldOver(sl){var ft=sl.querySelector(".sldft"),lim=(ft?ft.getBoundingClientRect().top:sl.getBoundingClientRect().bottom)+1,bad=false;
+ sl.querySelectorAll(".sldh,.sldb ul,.sldb ol,.sldf img,.sldf svg,.sldc").forEach(function(e){if(e.getBoundingClientRect().bottom>lim)bad=true});return bad||sl.scrollHeight>sl.clientHeight+2}
+function sldShrink(sl){var fs=24,k=0;while(sldOver(sl)&&k++<16){fs-=1.2;sl.querySelectorAll(".sldb ul,.sldov").forEach(function(u){u.style.setProperty("font-size",fs+"px","important")})}}
 (function(){var t=null;function go(){t=null;try{sldFitAll()}catch(e){}}function q(){if(!t)t=setTimeout(go,30)}
  try{new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var a=ms[i].addedNodes;for(var j=0;j<a.length;j++){var n=a[j];if(n.nodeType===1&&(n.classList.contains("sldeck")||n.querySelector&&n.querySelector(".sldeck")||n.closest&&n.closest(".sldeck"))){q();return}}}}).observe(document.body,{childList:true,subtree:true})}catch(e){}
  window.addEventListener("resize",q);document.addEventListener("load",function(e){var f=e.target&&e.target.closest&&e.target.closest(".sldfit");if(f){var sl=f.querySelector(".sld");if(sl)sl.removeAttribute("data-fit");q()}},true);q()})();
