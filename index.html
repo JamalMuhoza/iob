@@ -967,7 +967,23 @@ function pathHTML(){if(isAdmin()||S.u==null||!UNITS[S.u])return "";var u=UNITS[S
   return '<li class="ps '+st+'"><button '+(st==="lock"?'disabled':'data-open="'+x[1]+'"')+'><span class="psi" aria-hidden="true">'+(st==="done"||st==="skip"?"&#10003;":st==="lock"?"&#128274;&#xFE0E;":"&#9675;")+'</span><span class="pst"><b>'+esc(x[2])+'</b>'+(/^ch/.test(x[0])||/^hw:/.test(x[0])?'<span>Chapter '+chNo(ch)+'</span>':'<span>'+u.chs.map(chNo).join(", ")+'</span>')+'</span><span class="psb">'+TX[st]+'</span></button></li>'}).join("")+'</ol>'}
 
 
-function sideTop(){var sd=document.getElementById("side");if(sd&&!sd.querySelector(".tl.on"))sd.scrollTop=0}
+/* side list goes back to the top only when another unit is opened, never when a chapter or section in it is clicked */
+var _sideU;function sideTop(){var sd=document.getElementById("side");if(!sd||_sideU===S.u)return;_sideU=S.u;if(!sd.querySelector(".tl.on"))sd.scrollTop=0}
+/* keep things where the student's eyes are: the slide controls stay at the same height after Next slide / Next section,
+   and a chapter or section clicked in the side list stays under the pointer */
+var ANC=null;
+document.addEventListener("click",function(e){var t=e.target;if(!t.closest)return;
+ var f=t.closest(".sldeck .fctl");if(f&&t.closest("button")){var y=f.getBoundingClientRect().top;[0,60,200,500].forEach(function(ms){setTimeout(function(){ANC={k:"sl",y:y};slAnchor()},ms)});return}
+ var sb=t.closest("#side button[data-t],#side button[data-ch]");if(sb){ANC={k:"side",sel:sb.dataset.t?'[data-t="'+sb.dataset.t+'"]':'[data-ch="'+sb.dataset.ch+'"]',y:sb.getBoundingClientRect().top};setTimeout(sideAnchor,0)}
+},true);
+function slAnchor(){var a=ANC&&ANC.k==="sl"?ANC:null;ANC=null;var f=document.querySelector(".sldeck .fctl"),d=document.querySelector(".sldeck");if(!f||!d)return;
+ var th=(document.querySelector(".top")||{}).offsetHeight||0;
+ if(!a){var dt=d.getBoundingClientRect();if(dt.top>=th&&dt.bottom<=window.innerHeight)return;window.scrollBy(0,dt.top-th-8);return}
+ window.scrollBy(0,f.getBoundingClientRect().top-a.y)}
+function sideAnchor(){var a=ANC&&ANC.k==="side"?ANC:null;ANC=null;var sd=document.getElementById("side");if(!a||!sd)return;var b=sd.querySelector(a.sel);if(b)sd.scrollTop+=b.getBoundingClientRect().top-a.y;fitDeck()}
+/* a section opened on its slides: if the slide and its buttons do not fit on the screen, move the page up just enough (never past the tabs) */
+function fitDeck(){var d=document.querySelector(".sldeck"),tb=document.querySelector(".tabs");if(!d||!tb||window.matchMedia("(max-width:700px)").matches)return;var th=(document.querySelector(".top")||{}).offsetHeight||0,over=d.getBoundingClientRect().bottom-window.innerHeight+12,room=tb.getBoundingClientRect().top-th;if(over>0&&room>0)window.scrollBy(0,Math.min(over,room))}
+document.addEventListener("click",function(e){if(e.target.closest&&e.target.closest('[data-tab="slides"]'))setTimeout(fitDeck,0)});
 function sideTog(){sideTop();var b=document.getElementById("sidetog"),sh=document.querySelector(".shell"),sd=document.getElementById("side");if(!b||!sh)return;
  var off=sh.classList.contains("noside");b.hidden=off;if(off)return;var hid=sh.classList.contains("nolist");
  b.style.left=(hid?0:sd.getBoundingClientRect().right-24)+"px";b.classList.toggle("in",!hid);b.innerHTML=hid?"&#8250;":"&#8249;";b.title=hid?"Show topic list":"Hide topic list";b.setAttribute("aria-label",b.title)}
@@ -1101,7 +1117,11 @@ function drawStu(em,name,d){var g=gsum(d.quizzes,d.grades),pr=d.progress||{},don
   if(isNaN(sc)||isNaN(tt)||tt<=0){ok.textContent="Enter a score and a total.";return}b.disabled=true;ok.textContent="Saving...";
   api("grade",{student:em,chapter:id,item:"homework",score:sc,total:tt,comment:$("#gc_"+id).value}).then(function(r){if(r.ok)drawStu(em,name,r.data);else{b.disabled=false;ok.textContent=r.error}}).catch(function(){b.disabled=false;ok.textContent="Could not reach the class server."})}})}
 
-var _ua=null;document.addEventListener("uam-assets",function(){clearTimeout(_ua);_ua=setTimeout(function(){var y=window.scrollY;safeRender();window.scrollTo(0,y)},400)});
+/* chapter pictures arrive in the background and the page is redrawn: hold its height while it is rebuilt (lazy pictures start at no height),
+   so a student reading near the bottom is not pushed up, and keep the side list where it was */
+var _ua=null;document.addEventListener("uam-assets",function(){clearTimeout(_ua);_ua=setTimeout(function(){var y=window.scrollY,sd=document.getElementById("side"),st=sd?sd.scrollTop:0,mn=document.querySelector(".shell")||document.body;mn.style.minHeight=mn.offsetHeight+"px";KEEPH=mn;safeRender();if(sd)sd.scrollTop=st;window.scrollTo(0,y)},400)});
+var KEEPH=null;
+if(typeof go==="function"){var _go0=go;go=function(v,o){if(KEEPH){KEEPH.style.minHeight="";KEEPH=null}return _go0(v,o)}}
 
 //---------------------------------------------------------------------
 //
@@ -4227,19 +4247,19 @@ function showStart(kind){
 }
 function showDraw(){
  var L=SHOW.list,k=SHOW.k;
- shw.innerHTML='<div class="shwstage"><div class="shwslide">'+sldHTML(L[k],k,L.length)+'</div></div><div class="shwctl"><button data-sv="-1"'+(k===0?' disabled':'')+'>&larr;</button><span>'+(k+1)+' / '+L.length+'</span><button data-sv="1"'+(k===L.length-1?' disabled':'')+'>&rarr;</button><button data-sv="g">All slides</button><button data-sv="x">Exit</button></div>'+(SHOW.grid?showGrid():'');
+ shw.innerHTML='<div class="shwstage"><div class="shwslide">'+sldHTML(L[k],k,L.length)+'</div></div><div class="shwctl"><button data-sv="-1"'+(k===0?' disabled':'')+'>&larr;</button><span>'+(k+1)+' / '+L.length+'</span><button data-sv="1"'+(k===L.length-1?' disabled':'')+'>&rarr;</button>'+(function(){if(SHOW.kind!=="t")return "";var t=topicById(S.tid),n=TOPICS[TOPICS.indexOf(t)+1];return n?'<button data-sv="n" class="shwnx" title="Next section: '+esc(n.title)+'">Next section &#8677;</button>':''})()+'<button data-sv="g">All slides</button><button data-sv="x">Exit</button></div>'+(SHOW.grid?showGrid():'');
  showFit();
 }
 function showGrid(){return '<div class="shwgrid"><div class="shwgh"><b>All slides</b><button data-sv="g">Close</button></div><div class="shwgl">'+SHOW.list.map(function(x,i){var t=x.ttl?'Title':x.ov?'Overview':x.div?('Section '+x.no+': '+x.title):x.title;return '<button class="shwt'+(i===SHOW.k?' on':'')+(x.div||x.ttl?' dv':'')+'" data-go="'+i+'"><span class="n">'+(i+1)+'</span>'+(x.img?'<img src="'+x.img+'" alt="" loading="lazy" decoding="async">':'')+'<span class="tt">'+t+'</span></button>'}).join("")+'</div></div>'}
 function showFit(){var el=shw.querySelector(".shwslide");if(!el)return;var sc=Math.min(window.innerWidth/1280,window.innerHeight/720);el.style.transform="scale("+sc+")"}
 function showMove(d){if(!SHOW)return;var n=Math.max(0,Math.min(SHOW.list.length-1,SHOW.k+d));if(n!==SHOW.k){SHOW.k=n;showDraw()}}
 function showEnd(){if(!SHOW)return;var s0=SHOW;SHOW=null;shw.classList.remove("on");shw.innerHTML="";
- if(s0.kind==="t"){S.sl=s0.k;if(S.view==="topic")topic()}else{S.sk=s0.k;if(S.view==="slides")slidesView()}
+ if(s0.kind==="t"){S.sl=s0.k;if(S.view==="topic"){if(s0.moved){render();if(typeof slAnchor==="function")slAnchor()}else topic()}}else{S.sk=s0.k;if(S.view==="slides")slidesView()}
  var ex=document.exitFullscreen||document.webkitExitFullscreen;if((document.fullscreenElement||document.webkitFullscreenElement)&&ex)try{ex.call(document)}catch(e){}}
 window.addEventListener("resize",showFit);
 document.addEventListener("fullscreenchange",function(){if(!document.fullscreenElement&&SHOW)showEnd()});
 document.addEventListener("webkitfullscreenchange",function(){if(!document.webkitFullscreenElement&&SHOW)showEnd()});
-shw.addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.go!==undefined){e.stopPropagation();SHOW.k=+b.dataset.go;SHOW.grid=false;showDraw();return}if(b&&b.dataset.sv){e.stopPropagation();if(b.dataset.sv==="x")showEnd();else if(b.dataset.sv==="g"){SHOW.grid=!SHOW.grid;showDraw()}else showMove(+b.dataset.sv);return}if(e.target.closest(".shwgrid"))return;
+shw.addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.go!==undefined){e.stopPropagation();SHOW.k=+b.dataset.go;SHOW.grid=false;showDraw();return}if(b&&b.dataset.sv){e.stopPropagation();if(b.dataset.sv==="n"){var t0=topicById(S.tid),n0=TOPICS[TOPICS.indexOf(t0)+1];if(n0){S.tid=n0.id;S.sl=0;S.tab="slides";SHOW.list=secDeck(n0);SHOW.k=0;SHOW.moved=1;SHOW.grid=false;showDraw()}return}if(b.dataset.sv==="x")showEnd();else if(b.dataset.sv==="g"){SHOW.grid=!SHOW.grid;showDraw()}else showMove(+b.dataset.sv);return}if(e.target.closest(".shwgrid"))return;
  if(e.target.closest(".shwctl"))return;showMove(e.clientX<window.innerWidth/3?-1:1)});
 document.addEventListener("keydown",function(e){if(!SHOW)return;var k=e.key;
  if(SHOW.grid&&k!=="Escape"&&k!=="g"&&k!=="G")return;if(k==="ArrowRight"||k==="ArrowDown"||k==="PageDown"||k===" "||k==="Enter"){e.preventDefault();e.stopImmediatePropagation();showMove(1)}
@@ -4295,7 +4315,7 @@ function pane(t){
   h+='<div class="hud">Tap a term to reveal its definition</div><div class="termgrid">'+t.terms.map(function(x){return '<button class="term closed"><b>'+x.t+'</b><span>'+x.d+'</span></button>'}).join("")+'</div><div class="sel" style="margin-top:16px"><button class="btn pri" data-fcn="'+t.id+'">Drill these as flashcards</button></div>';
  }else if(S.tab==="slides"){
   var SL=secDeck(t),k=Math.min(S.sl||0,SL.length-1),x=SL[k];
-  h+='<div class="sldeck">'+sldHTML(x,k,SL.length)+'<div class="fctl" style="margin-top:12px"><button class="btn" data-sl="-1"'+(k===0?' disabled style="opacity:.4"':'')+'>&larr; Previous slide</button><button class="btn pri" data-sl="1"'+(k===SL.length-1?' disabled style="opacity:.4"':'')+'>Next slide &rarr;</button><button class="btn" data-fs="t">&#x26F6; Full screen</button>'+(function(){var i=TOPICS.indexOf(t),n=TOPICS[i+1];return n?'<button class="btn pri nxsec" data-t="'+n.id+'" title="'+esc(n.title)+'">Next section &rarr;</button>':''})()+'</div></div>';
+  h+='<div class="sldeck">'+sldHTML(x,k,SL.length)+'<div class="fctl" style="margin-top:12px"><button class="btn" data-sl="-1"'+(k===0?' disabled style="opacity:.4"':'')+'>&larr; Previous slide</button><button class="btn pri" data-sl="1"'+(k===SL.length-1?' disabled style="opacity:.4"':'')+'>Next slide &rarr;</button>'+(function(){var i=TOPICS.indexOf(t),n=TOPICS[i+1];return n?'<button class="btn pri nxsec" data-t="'+n.id+'" title="'+esc(n.title)+'">Next section &rarr;</button>':''})()+'<button class="btn" data-fs="t">&#x26F6; Full screen</button></div></div>';
  }else if(S.tab==="quiz"){
   h+=(t.quiz||[]).map(function(q,i){return qHTML(q,i,"t")}).join("");
  }
@@ -4406,7 +4426,7 @@ document.addEventListener("click",function(e){
  if("sch" in d){S.sch=d.sch||null;S.sk=0;go("slides");return}
  if(d.sk){var c0=CH.filter(function(x){return x.id===S.sch})[0],n0=chDeck(c0).length;S.sk=d.sk.charAt(0)==="="?+d.sk.slice(1):Math.max(0,Math.min(n0-1,(S.sk||0)+(+d.sk)));slidesView();return}
  if(d.ch){S.ch=d.ch;var cc=CH.filter(function(x){return x.id===d.ch})[0];if(cc&&cc.topics.length){S.tid=cc.topics[0].id;S.tab="slides";go("topic")}else go("sector");return}
- if(d.t){S.tid=d.t;S.tab="slides";go("topic");return}
+ if(d.t){S.tab=(b.closest("#side")&&S.view==="topic"&&S.tab!=="hw"&&S.tab!=="gq")?S.tab:"slides";S.tid=d.t;go("topic");return}
  if(d.tab){S.tab=d.tab;topic();return}
  if(d.nav){var t=topicById(S.tid),c=t._ch,i=c.topics.indexOf(t)+(+d.nav);if(c.topics[i]){S.tid=c.topics[i].id;S.tab="slides";go("topic")}return}
  if(d.tk||d.sbk){var pr=(d.tk||d.sbk).split("|"),act=pr[0],id=pr[1],isT=!!d.tk;
