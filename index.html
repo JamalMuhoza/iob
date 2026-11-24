@@ -679,15 +679,27 @@ html body .shwslide.ar43 .sld .sldb.two{grid-template-columns:minmax(0,1fr) minm
 #shw.tl-pen .shwink,#shw.tl-hl .shwink{pointer-events:auto}
 #shw.tl-laser .shwstage{cursor:none}#shw.tl-pen .shwink{cursor:crosshair}#shw.tl-hl .shwink{cursor:cell}
 .shwbar{position:absolute;left:0;right:0;bottom:0;height:72px;z-index:20}
-html body .shwbar .shwctl{opacity:0!important;transition:opacity .18s;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 36px)}
-html body .shwbar:hover .shwctl{opacity:1!important}
-html body .shwbar .shwctl{background:rgba(10,26,19,.88);padding:7px 9px;border-radius:8px;bottom:10px}
-@media (hover:none){html body .shwbar .shwctl{opacity:1!important}}
+html body .shwbar .shwctl{opacity:0!important;pointer-events:none;transition:opacity .18s;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 36px);background:rgba(10,26,19,.88);padding:6px 8px;border-radius:8px;bottom:10px}
+html body .shwbar.show .shwctl{opacity:1!important;pointer-events:auto}
+html body .shwctl button{display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:38px;padding:0 8px!important}
+html body .shwctl button svg{width:22px;height:22px;display:block}html body .shwctl button svg.wide{width:34px;height:24px}
 .shwctl button.on{background:#fff;color:var(--forest)}
 .shwctl .shwsep{width:1px;height:24px;background:rgba(255,255,255,.5);margin:0 2px}
-#shwlaser{position:fixed;left:0;top:0;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;pointer-events:none;z-index:30;display:none;
+#shwlaser{position:fixed;left:0;top:0;width:22px;height:22px;margin:-11px 0 0 -11px;will-change:transform;border-radius:50%;pointer-events:none;z-index:30;display:none;
  background:radial-gradient(circle,#fff 0 14%,#ff3b3b 30%,#e00000 52%,rgba(230,0,0,.35) 68%,rgba(230,0,0,0) 74%);box-shadow:0 0 12px 5px rgba(255,20,20,.55)}
 #shw.tl-laser #shwlaser.in{display:block}
+
+/* key words: bold and the same green as the slide titles (Nov 24 2026) */
+.sld .sldb b,.sld .sldb strong,.sld .sldov b{color:var(--forest)!important}
+html.dark .sld .sldb b,html.dark .sld .sldb strong,html.dark .sld .sldov b{color:var(--kelly)!important}
+/* phones: tall slide, picture frame on top, text below */
+html body .sldfit.ph{aspect-ratio:2/3}
+html body .sldfit.ph>.sldin{width:720px;height:1080px}
+html body .sldfit.ph .sld{width:720px!important;height:1080px!important;padding:22px 30px 62px!important}
+html body .sldfit.ph .sld .sldh{height:104px!important}
+html body .sldfit.ph .sld .sldb.two{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:470px minmax(0,1fr)!important;gap:22px!important}
+html body .sldfit.ph .sld .sldb.two>.sldf{grid-row:1}html body .sldfit.ph .sld .sldb.two>ul{grid-row:2;align-self:start}
+html body .sldfit.ph .sldivt{font-size:46px!important}
 .sldc{font-size:15px}.shwslide .sldivt{font-size:54px}
 .shwctl{position:absolute;right:18px;bottom:14px;display:flex;gap:8px;align-items:center;opacity:.25;transition:opacity .2s;font-family:var(--cond);color:#fff}
 .shwctl:hover{opacity:1}.shwctl button{background:var(--forest);color:#fff;border:1px solid #fff;border-radius:4px;padding:6px 12px;font-family:var(--cond);font-size:15px;cursor:pointer}.shwctl button[disabled]{opacity:.35}
@@ -1064,41 +1076,96 @@ function contHTML(){var tid=null;try{tid=localStorage.getItem(lastKey())}catch(x
  if(!hit)return "";
  return '<button class="card contc" data-t="'+hit.t.id+'"><span class="hud">'+lbl+'</span><b>'+hit.c.num+'.'+(hit.i+1)+' &nbsp;'+esc(hit.t.title)+'</b><span class="contgo">Open &rarr;</span></button>'}
 /* ---------- full screen slides: laser pointer, pen, highlighter, clear, 16:9 or 4:3 (Nov 24 2026) ----------
-   The buttons stay at the bottom right and show only while the pointer is over the bottom of the screen. Ink is kept per slide
-   while the page is open, so going back to a slide shows what was written on it. */
-var SHT={tool:"laser",ar:(function(){try{return localStorage.getItem("uamsl:ar")==="43"?"43":"169"}catch(e){return "169"}})(),ink:(typeof WeakMap==="function")?new WeakMap():null,cur:null};
+   Buttons are icons at the bottom right, hidden until the pointer comes to the bottom of the screen (on a touch screen: a tap at the
+   bottom shows them for a few seconds). Ink is kept per slide while the page is open. */
+var SHT={tool:"laser",ar:(function(){try{return localStorage.getItem("uamsl:ar")==="43"?"43":"169"}catch(e){return "169"}})(),ink:(typeof WeakMap==="function")?new WeakMap():null,cur:null,bar:false,barT:null};
 function shwW(){return SHT.ar==="43"?960:1280}
 function shwInk(){if(!SHOW||!SHT.ink)return [];var x=SHOW.list[SHOW.k],a=SHT.ink.get(x);if(!a){a=[];SHT.ink.set(x,a)}return a}
 function shwPaint(){var cv=document.querySelector("#shw .shwink");if(!cv)return;var W=shwW(),c=cv.getContext("2d");c.setTransform(2,0,0,2,0,0);c.clearRect(0,0,W,720);
  shwInk().forEach(function(s){if(s.ar!==SHT.ar||!s.p.length)return;c.save();c.lineCap="round";c.lineJoin="round";
   if(s.t==="hl"){c.globalCompositeOperation="multiply";c.strokeStyle="rgba(255,226,0,.55)";c.lineWidth=26}else{c.strokeStyle="#e0161b";c.lineWidth=4}
   c.beginPath();c.moveTo(s.p[0][0],s.p[0][1]);if(s.p.length===1)c.lineTo(s.p[0][0]+.1,s.p[0][1]);for(var i=1;i<s.p.length;i++)c.lineTo(s.p[i][0],s.p[i][1]);c.stroke();c.restore()})}
+var SHI=(function(){function v(p,ex){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'}
+ return {prev:v('<path d="M15 5l-7 7 7 7"/>'),next:v('<path d="M9 5l7 7-7 7"/>'),sec:v('<path d="M5 5l7 7-7 7"/><path d="M12 5l7 7-7 7"/>'),
+  laser:v('<circle cx="12" cy="12" r="3.2" fill="#ff3030" stroke="#ff3030"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>'),
+  pen:v('<path d="M16.5 3.5l4 4L8 20H4v-4z"/><path d="M13.5 6.5l4 4"/>'),
+  hl:v('<path d="M14 4l6 6-7.5 7.5h-6v-6z"/><path d="M6.5 17.5L4 20h6"/><path d="M3 22h18" stroke="#ffe200" stroke-width="3"/>'),
+  clear:v('<path d="M8 20h12"/><path d="M4.6 13.4l8.8-8.8a2 2 0 0 1 2.8 0l3.2 3.2a2 2 0 0 1 0 2.8L12 18H8.2z"/><path d="M9 9l6 6"/>'),
+  r169:'<svg class="wide" viewBox="0 0 34 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="1" y="3" width="32" height="18" rx="1.5"/><text x="17" y="15.4" font-size="9.5" text-anchor="middle" fill="currentColor" stroke="none" font-family="Arial" font-weight="700">16:9</text></svg>',
+  r43:'<svg class="wide" viewBox="0 0 34 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="3" width="24" height="18" rx="1.5"/><text x="17" y="15.4" font-size="9.5" text-anchor="middle" fill="currentColor" stroke="none" font-family="Arial" font-weight="700">4:3</text></svg>',
+  grid:v('<rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/>'),
+  x:v('<path d="M6 6l12 12M18 6L6 18"/>')}})();
+function shwBar(on){SHT.bar=on;var b=document.querySelector("#shw .shwbar");if(b)b.classList.toggle("show",on)}
 function shwExtra(){var shw=document.getElementById("shw");if(!shw||!SHOW)return;var st=shw.querySelector(".shwslide"),ctl=shw.querySelector(".shwctl");
  shw.classList.remove("tl-laser","tl-pen","tl-hl");shw.classList.add("tl-"+SHT.tool);
  if(st){st.classList.toggle("ar43",SHT.ar==="43");var W=shwW();var cv=document.createElement("canvas");cv.className="shwink";cv.width=W*2;cv.height=1440;cv.style.width=W+"px";st.appendChild(cv);
   var sl=st.querySelector(".sld");if(sl&&typeof sldShrink==="function")try{sldShrink(sl)}catch(e){}
   st.addEventListener("load",function(){var s2=st.querySelector(".sld");if(s2&&typeof sldShrink==="function")try{sldShrink(s2)}catch(e){}},true)}
- if(ctl){var bar=document.createElement("div");bar.className="shwbar";ctl.parentNode.insertBefore(bar,ctl);bar.appendChild(ctl);
+ if(ctl){var bar=document.createElement("div");bar.className="shwbar"+(SHT.bar?" show":"");ctl.parentNode.insertBefore(bar,ctl);bar.appendChild(ctl);
+  function ic(sel,svg,tt){var b=ctl.querySelector(sel);if(b){b.innerHTML=svg;b.title=tt;b.setAttribute("aria-label",tt)}}
+  ic('[data-sv="-1"]',SHI.prev,"Previous slide");ic('[data-sv="1"]',SHI.next,"Next slide");ic('[data-sv="n"]',SHI.sec,"Next section");ic('[data-sv="g"]',SHI.grid,"All slides");ic('[data-sv="x"]',SHI.x,"Exit full screen");
   var g=ctl.querySelector('[data-sv="g"]'),d=document.createElement("span");d.style.display="contents";
-  d.innerHTML='<span class="shwsep"></span>'+[["laser","Laser"],["pen","Pen"],["hl","Highlighter"]].map(function(x){return '<button type="button" data-tl="'+x[0]+'"'+(SHT.tool===x[0]?' class="on"':'')+'>'+x[1]+'</button>'}).join("")+'<button type="button" data-tl="clear">Clear ink</button><span class="shwsep"></span><button type="button" data-ar="169"'+(SHT.ar==="169"?' class="on"':'')+'>16:9</button><button type="button" data-ar="43"'+(SHT.ar==="43"?' class="on"':'')+'>4:3</button><span class="shwsep"></span>';
+  d.innerHTML='<span class="shwsep"></span>'+[["laser","Laser pointer"],["pen","Pen"],["hl","Highlighter"]].map(function(x){return '<button type="button" data-tl="'+x[0]+'" title="'+x[1]+'" aria-label="'+x[1]+'"'+(SHT.tool===x[0]?' class="on"':'')+'>'+SHI[x[0]]+'</button>'}).join("")+'<button type="button" data-tl="clear" title="Clear ink" aria-label="Clear ink">'+SHI.clear+'</button><span class="shwsep"></span><button type="button" data-ar="169" title="Wide slides (16:9)" aria-label="Wide slides 16:9"'+(SHT.ar==="169"?' class="on"':'')+'>'+SHI.r169+'</button><button type="button" data-ar="43" title="Standard slides (4:3)" aria-label="Standard slides 4:3"'+(SHT.ar==="43"?' class="on"':'')+'>'+SHI.r43+'</button><span class="shwsep"></span>';
   ctl.insertBefore(d,g||null)}
  var lz=document.createElement("div");lz.id="shwlaser";shw.appendChild(lz);
  showFit();shwPaint()}
 (function(){
  function pt(cv,e){var r=cv.getBoundingClientRect(),W=shwW();return [(e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*720]}
- document.addEventListener("pointerdown",function(e){var cv=e.target.closest&&e.target.closest("#shw .shwink");if(!cv||!SHOW||SHT.tool==="laser")return;e.preventDefault();
-  SHT.cur={t:SHT.tool,ar:SHT.ar,p:[pt(cv,e)]};shwInk().push(SHT.cur);try{cv.setPointerCapture(e.pointerId)}catch(x){}shwPaint()});
- document.addEventListener("pointermove",function(e){if(SHOW){var lz=document.getElementById("shwlaser");if(lz){lz.style.left=e.clientX+"px";lz.style.top=e.clientY+"px";lz.classList.toggle("in",!(e.target.closest&&e.target.closest(".shwctl,.shwgrid")))}}
-  if(!SHT.cur)return;var cv=document.querySelector("#shw .shwink");if(!cv)return;SHT.cur.p.push(pt(cv,e));shwPaint()});
+ var LX=0,LY=0,LIN=false,raf=0;
+ function laser(){raf=0;var lz=document.getElementById("shwlaser");if(!lz)return;lz.style.transform="translate3d("+LX+"px,"+LY+"px,0)";lz.classList.toggle("in",LIN)}
+ function zone(y){return y>window.innerHeight-96}
+ document.addEventListener("pointerdown",function(e){SHT.lpt=e.pointerType;if(!SHOW)return;var cv=e.target.closest&&e.target.closest("#shw .shwink");if(!cv||SHT.tool==="laser")return;e.preventDefault();
+  SHT.cur={t:SHT.tool,ar:SHT.ar,p:[pt(cv,e)]};shwInk().push(SHT.cur);try{cv.setPointerCapture(e.pointerId)}catch(x){}shwPaint()},true);
+ document.addEventListener("pointermove",function(e){if(!SHOW)return;
+  if(e.pointerType==="mouse"){var onc=!!(e.target.closest&&e.target.closest(".shwctl"));LX=e.clientX;LY=e.clientY;LIN=!onc&&!(e.target.closest&&e.target.closest(".shwgrid"));if(!raf)raf=requestAnimationFrame(laser);
+   var want=onc||zone(e.clientY);if(want!==SHT.bar)shwBar(want)}
+  if(!SHT.cur)return;var cv=document.querySelector("#shw .shwink");if(!cv)return;var ev=e.getCoalescedEvents?e.getCoalescedEvents():[e];if(!ev.length)ev=[e];ev.forEach(function(x){SHT.cur.p.push(pt(cv,x))});shwPaint()});
  function end(){SHT.cur=null}
  document.addEventListener("pointerup",end);document.addEventListener("pointercancel",end);
- document.addEventListener("mouseleave",function(){var lz=document.getElementById("shwlaser");if(lz)lz.classList.remove("in")});
+ document.addEventListener("mouseleave",function(){LIN=false;if(!raf)raf=requestAnimationFrame(laser);if(SHOW&&SHT.bar)shwBar(false)});
  document.addEventListener("click",function(e){if(!SHOW||!e.target.closest)return;
   var b=e.target.closest("#shw [data-tl],#shw [data-ar]");
   if(b){e.stopPropagation();b.blur();if(b.dataset.ar){SHT.ar=b.dataset.ar;try{localStorage.setItem("uamsl:ar",SHT.ar)}catch(x){}showDraw();return}
    if(b.dataset.tl==="clear"){var a=shwInk();a.splice(0,a.length);shwPaint();return}SHT.tool=b.dataset.tl;var sh=document.getElementById("shw");sh.classList.remove("tl-laser","tl-pen","tl-hl");sh.classList.add("tl-"+SHT.tool);sh.querySelectorAll("[data-tl]").forEach(function(x){x.classList.toggle("on",x.dataset.tl===SHT.tool)});return}
+  /* touch screens: a tap at the bottom shows the buttons for a few seconds instead of changing the slide */
+  if(SHT.lpt&&SHT.lpt!=="mouse"&&!e.target.closest(".shwctl")&&e.target.closest("#shw")&&zone(e.clientY)&&!e.target.closest(".shwgrid")){e.stopPropagation();shwBar(true);clearTimeout(SHT.barT);SHT.barT=setTimeout(function(){shwBar(false)},4000);return}
+  if(e.target.closest("#shw .shwctl")&&SHT.lpt&&SHT.lpt!=="mouse"){clearTimeout(SHT.barT);SHT.barT=setTimeout(function(){shwBar(false)},4000)}
   if(SHT.tool!=="laser"&&e.target.closest("#shw .shwstage"))e.stopPropagation()},true);
 })();
+/* ---------- Download slides: every slide of the chapter as one PDF, made in the browser (Nov 24 2026) ----------
+   Each slide is drawn at 1280 x 720 with the page's own styles and fonts, turned into a picture and put on its own PDF page. */
+function sldPdfCh(){var c=null;if(S.view==="slides"&&S.sch)c=CH.filter(function(x){return x.id===S.sch})[0];else if(S.tid){var t=topicById(S.tid);c=t&&(t._ch||ALLCH.filter(function(x){return x.topics.indexOf(t)>=0})[0])}return c}
+function sldPdfBtn(){var f=document.querySelector(".sldeck .fctl");if(!f||f.querySelector("[data-sldpdf]"))return;var fs=f.querySelector("[data-fs]");if(!fs)return;
+ var b=document.createElement("button");b.className="btn";b.type="button";b.setAttribute("data-sldpdf","1");b.innerHTML="&#x2913; Download slides (PDF)";b.title="All slides of this chapter in one PDF";fs.parentNode.insertBefore(b,fs.nextSibling)}
+function sldPdfCss(){var t=[];for(var i=0;i<document.styleSheets.length;i++){try{var r=document.styleSheets[i].cssRules;for(var j=0;j<r.length;j++)t.push(r[j].cssText)}catch(e){}}return t.join("\n")}
+function sldTmo(p,ms,hard){return new Promise(function(ok,no){var d=false,t=setTimeout(function(){if(!d){d=true;hard?no(new Error("timeout")):ok()}},ms);Promise.resolve(p).then(function(v){if(!d){d=true;clearTimeout(t);ok(v)}},function(e){if(!d){d=true;clearTimeout(t);hard?no(e):ok()}})})}
+var SLDDATA={};function sldData(u){if(SLDDATA[u])return Promise.resolve(SLDDATA[u]);return fetch(u).then(function(r){return r.blob()}).then(function(b){return new Promise(function(ok){var f=new FileReader();f.onload=function(){SLDDATA[u]=f.result;ok(f.result)};f.onerror=function(){ok(null)};f.readAsDataURL(b)})}).catch(function(){return null})}
+function sldPdf(btn){var c=sldPdfCh();if(!c||btn.disabled)return;var L=chDeck(c),lab=btn.innerHTML;btn.disabled=true;
+ function msg(x){btn.textContent=x}
+ msg("Preparing slides...");if(window.UAMNEED)UAMNEED([c.id]);
+ var PIXS="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",t0=Date.now();
+ function ready(){return !L.some(function(x){return x.img===PIXS})}
+ function waitAssets(){return new Promise(function(ok){(function w(){if(ready()||Date.now()-t0>90000)ok();else setTimeout(w,400)})()})}
+ waitAssets().then(function(){
+  var root=document.documentElement,dark=root.classList.contains("dark");if(dark)root.classList.remove("dark");
+  var cs=getComputedStyle(root),vars=[];for(var i=0;i<cs.length;i++){var n=cs[i];if(n.indexOf("--")===0)vars.push(n+":"+cs.getPropertyValue(n))}
+  if(dark)root.classList.add("dark");
+  var css=sldPdfCss().replace(/<\/style/gi,"<\\/style"),host=document.createElement("div");host.setAttribute("aria-hidden","true");
+  host.style.cssText="position:fixed;left:-40000px;top:0;width:1280px;height:720px;overflow:hidden;background:#fff";document.body.appendChild(host);
+  var cv=document.createElement("canvas"),SC=1.5;cv.width=1280*SC;cv.height=720*SC;var g=cv.getContext("2d"),out=[],k=0,ser=new XMLSerializer();
+  function one(){if(k>=L.length)return Promise.resolve();msg("Preparing slide "+(k+1)+" of "+L.length);
+   host.innerHTML='<div class="sldfit '+(typeof th==="function"?th(c):"")+'" style="width:1280px;height:720px;aspect-ratio:auto;border:0;border-radius:0"><div class="sldin" style="transform:none">'+sldHTML(L[k],k,L.length)+'</div></div>';
+   var sl=host.querySelector(".sld"),ims=[].slice.call(host.querySelectorAll("img"));
+   return Promise.all(ims.map(function(im){im.removeAttribute("loading");return sldTmo((/^data:/.test(im.src)?Promise.resolve():sldData(im.src).then(function(d){if(d)im.src=d;else im.style.visibility="hidden"})).then(function(){return im.decode?im.decode():null}),4000)})).then(function(){
+    try{sldShrink(sl)}catch(e){}
+    var svg='<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720"><foreignObject x="0" y="0" width="1280" height="720"><html xmlns="http://www.w3.org/1999/xhtml" style="'+vars.join(";").replace(/"/g,"&quot;")+'"><head><style>'+css.replace(/&/g,"&amp;").replace(/</g,"&lt;")+'</style></head><body style="margin:0;background:#fff">'+ser.serializeToString(host.firstChild)+'</body></html></foreignObject></svg>';
+    var u="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+    return sldTmo(new Promise(function(ok,no){var im=new Image();im.onload=function(){setTimeout(function(){g.fillStyle="#fff";g.fillRect(0,0,cv.width,cv.height);g.drawImage(im,0,0,cv.width,cv.height);
+      try{cv.toBlob(function(b){b.arrayBuffer().then(function(a){out.push({w:cv.width,h:cv.height,b:new Uint8Array(a)});k++;ok()})},"image/jpeg",.9)}catch(x){no(x)}},60)};im.onerror=function(){no(new Error("slide "+(k+1))) };im.src=u}),20000,true)}).then(one)}
+  return one().then(function(){host.remove();var pdf=hwAnnPdf(out),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([pdf],{type:"application/pdf"}));
+   a.download="Chapter "+c.num+" - "+String(c.title).replace(/[\\\/:*?"<>|]/g,"")+" (slides).pdf";document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},4000);
+   btn.disabled=false;btn.innerHTML=lab}).catch(function(e){host.remove();msg("Could not make the PDF. Please try again.");setTimeout(function(){btn.disabled=false;btn.innerHTML=lab},4000)})})}
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-sldpdf]");if(b){e.stopPropagation();sldPdf(b)}},true);
 
 /* ---------- class server: sync, uploads, teacher dashboard ---------- */
 function isAdmin(){return window.UAMUSER&&window.UAMUSER.r==="admin"}
@@ -3927,17 +3994,31 @@ function hwAnnPdf(imgs){var parts=[],off=0,xref=[],enc=function(s){var u=new Uin
  add("trailer\n<< /Size "+tot+" /Root 1 0 R >>\nstartxref\n"+xo+"\n%%EOF\n");
  var out=new Uint8Array(off),q=0;parts.forEach(function(u){out.set(u,q);q+=u.length});return out}
 /* ---------- slides: every slide in the same 16:9 frame, whole slide scaled to fit (added Nov 23 2026) ---------- */
+function sldPh(){return window.matchMedia("(max-width:700px)").matches}
+/* phones: a tall slide (720 x 1080, picture frame on top, text below) so the text stays readable; computers: 1280 x 720 */
 function sldFitAll(){document.querySelectorAll(".sldeck > .sld").forEach(function(sl){var fr=document.createElement("div");fr.className="sldfit";var inn=document.createElement("div");inn.className="sldin";sl.parentNode.insertBefore(fr,sl);fr.appendChild(inn);inn.appendChild(sl)});
- document.querySelectorAll(".sldfit").forEach(function(fr){var inn=fr.firstChild,w=fr.clientWidth;if(!w||!inn)return;inn.style.transform="scale("+(w/1280)+")";var sl=inn.firstChild;if(sl&&!sl.getAttribute("data-fit")){sl.setAttribute("data-fit","1");sldShrink(sl)}})}
+ var ph=sldPh();
+ document.querySelectorAll(".sldfit").forEach(function(fr){var inn=fr.firstChild,sl=inn&&inn.firstChild;if(!inn)return;
+  if(fr.classList.contains("ph")!==ph){fr.classList.toggle("ph",ph);if(sl)sl.removeAttribute("data-fit")}
+  var w=fr.clientWidth;if(!w)return;inn.style.transform="scale("+(w/(ph?720:1280))+")";
+  if(sl&&!sl.getAttribute("data-fit")){sl.setAttribute("data-fit","1");sldShrink(sl)}});
+ if(typeof sldPdfBtn==="function")sldPdfBtn()}
 function sldOver(sl){var ft=sl.querySelector(".sldft"),lim=(ft?ft.getBoundingClientRect().top:sl.getBoundingClientRect().bottom)+1,bad=false;
- sl.querySelectorAll(".sldh,.sldb ul,.sldb ol,.sldf img,.sldf svg,.sldc").forEach(function(e){if(e.getBoundingClientRect().bottom>lim)bad=true});return bad||sl.scrollHeight>sl.clientHeight+2}
+ sl.querySelectorAll(".sldh,.sldb ul,.sldb ol,.sldf img,.sldf svg,.sldc").forEach(function(e){if(e.getBoundingClientRect().bottom>lim)bad=true});
+ var bd=sl.querySelector(".sldb"),L=sl.querySelector(".sldb ul,.sldb ol,.sldov");if(bd&&L){var a=bd.getBoundingClientRect(),b=L.getBoundingClientRect(),k=a.height/(bd.offsetHeight||1);if(b.top<a.top-1||b.bottom>a.bottom+1||L.scrollWidth>L.clientWidth+1)bad=true}
+ return bad||sl.scrollHeight>sl.clientHeight+2}
 /* every picture sits in the same frame (Nov 24 2026): a drawing without a viewBox gets one so it scales inside the frame instead of being cut;
-   a title too long for its one-line band is made smaller so the frame below it keeps the same size on every slide */
+   a title too long for its band is made smaller so the frame below it keeps the same size on every slide */
 function sldSvgBox(sl){sl.querySelectorAll(".sldf svg").forEach(function(v){if(!v.getAttribute("viewBox")){var w=parseFloat(v.getAttribute("width")),h=parseFloat(v.getAttribute("height"));if(!(w&&h)){try{var bb=v.getBBox();w=bb.x+bb.width;h=bb.y+bb.height}catch(e){}}if(w&&h)v.setAttribute("viewBox","0 0 "+w+" "+h)}if(v.getAttribute("viewBox")){v.removeAttribute("width");v.removeAttribute("height")}})}
 function sldTitleFit(sl){var h=sl.querySelector(".sldh");if(!h)return;var fs=40,k=0;h.style.setProperty("font-size",fs+"px","important");while(h.scrollHeight>h.clientHeight+1&&k++<10){fs-=2;h.style.setProperty("font-size",fs+"px","important")}}
-function sldShrink(sl){sldSvgBox(sl);sldTitleFit(sl);var fs=24,k=0;while(sldOver(sl)&&k++<16){fs-=1.2;sl.querySelectorAll(".sldb ul,.sldov").forEach(function(u){u.style.setProperty("font-size",fs+"px","important")})}}
-(function(){var t=null;function go(){t=null;try{sldFitAll()}catch(e){}}function q(){if(!t)t=setTimeout(go,30)}
- try{new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var a=ms[i].addedNodes;for(var j=0;j<a.length;j++){var n=a[j];if(n.nodeType===1&&(n.classList.contains("sldeck")||n.querySelector&&n.querySelector(".sldeck")||n.closest&&n.closest(".sldeck"))){q();return}}}}).observe(document.body,{childList:true,subtree:true})}catch(e){}
+/* text as large as the slide allows: start big and step down until nothing runs past the slide */
+function sldShrink(sl){sldSvgBox(sl);sldTitleFit(sl);var L=sl.querySelectorAll(".sldb ul,.sldb ol,.sldov");if(!L.length)return;
+ var two=!!sl.querySelector(".sldb.two"),ph=!!sl.closest(".ph"),fs=ph?36:(two?34:38),k=0;
+ function set(){L.forEach(function(u){u.style.setProperty("font-size",fs+"px","important")})}
+ set();while(sldOver(sl)&&fs>14&&k++<40){fs-=1;set()}}
+(function(){var t=null;function go(){t=null;try{sldFitAll()}catch(e){if(window.console)console.warn("slide fit",e)}}function q(){if(!t)t=setTimeout(go,30)}
+ /* a new slide is fitted before the browser draws it (no jump from an unfitted slide) */
+ try{new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var a=ms[i].addedNodes;for(var j=0;j<a.length;j++){var n=a[j];if(n.nodeType===1&&(n.classList.contains("sldeck")||n.querySelector&&n.querySelector(".sldeck")||n.closest&&n.closest(".sldeck"))){go();return}}}}).observe(document.body,{childList:true,subtree:true})}catch(e){}
  window.addEventListener("resize",q);document.addEventListener("load",function(e){var f=e.target&&e.target.closest&&e.target.closest(".sldfit");if(f){var sl=f.querySelector(".sld");if(sl)sl.removeAttribute("data-fit");q()}},true);q()})();
 /* ---------- teacher: from a chapter's Homework or Quiz tab, one click to the student submissions (added Nov 23 2026) ---------- */
 function tSubBtn(p,kind,c){if(!(typeof isAdmin==="function"&&isAdmin()))return;var n=0;function put(){if(!document.body.contains(p))return;if(!p.querySelector(".tsubbar")){var d=document.createElement("div");d.className="tsubbar";
