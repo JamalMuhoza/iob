@@ -661,6 +661,33 @@ html.procon body{overflow:hidden}
 #pqbox .wsb{max-width:900px}
 #proc .wstools,#grader .wstools{top:0}
 #procIntro .piagree4{margin:12px 0 4px}#procIntro .piagree4 .piagree{margin:8px 0 0;font-size:15px;font-weight:600;cursor:pointer}#procIntro .piagree4 .piagree input{width:20px;height:20px;margin-top:1px}
+/* ---------- slides: one picture frame, the same size on every slide, as large as the slide allows (Nov 24 2026) ----------
+   The title sits in a fixed one-line band (long titles get smaller), so the frame below keeps one size. The picture is scaled to fit
+   inside the frame (never cut), on white, so a smaller picture has white around it instead of floating. */
+html body .sldfit .sld .sldh,html body .shwslide .sld .sldh{flex:none!important;height:62px!important;margin:0 0 14px!important;display:flex!important;align-items:center!important;overflow:hidden!important;line-height:1.08!important}
+html body .sldfit .sld .sldb,html body .shwslide .sld .sldb{flex:1 1 0!important;min-height:0!important;overflow:hidden!important}
+html body .sldfit .sld .sldb.two,html body .shwslide .sld .sldb.two{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)!important;grid-template-rows:minmax(0,1fr)!important;gap:28px!important;align-items:stretch!important;height:100%!important}
+html body .sldfit .sld .sldb.two>ul,html body .shwslide .sld .sldb.two>ul{align-self:center}
+html body .sldfit .sld .sldf,html body .shwslide .sld .sldf{box-sizing:border-box!important;height:100%!important;max-height:100%!important;min-height:0!important;width:100%!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;border:3px solid var(--forest)!important;border-radius:8px!important;background:#fff!important;padding:12px!important;overflow:hidden!important}
+html body .sldfit .sld .sldf img,html body .sldfit .sld .sldf svg,html body .shwslide .sld .sldf img,html body .shwslide .sld .sldf svg{flex:1 1 0!important;min-height:0!important;min-width:0!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:none!important;object-fit:contain!important;border:0!important;border-radius:0!important;padding:0!important;margin:0!important;background:transparent!important;box-shadow:none!important}
+html body .sldfit .sld .sldc,html body .shwslide .sld .sldc{flex:none!important;margin:8px 0 0!important;text-align:center;color:#10281a!important;font-size:16px!important;line-height:1.3}
+/* ---------- full screen: tools at the bottom, shown only when the pointer is over them; laser pointer; pen and highlighter ---------- */
+.shwslide{position:relative}
+.shwslide.ar43{width:960px!important}html body .shwslide.ar43 .sld{width:960px!important}
+html body .shwslide.ar43 .sld .sldb.two{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)!important;gap:22px!important}
+.shwink{position:absolute;left:0;top:0;height:720px;z-index:5;pointer-events:none;touch-action:none}
+#shw.tl-pen .shwink,#shw.tl-hl .shwink{pointer-events:auto}
+#shw.tl-laser .shwstage{cursor:none}#shw.tl-pen .shwink{cursor:crosshair}#shw.tl-hl .shwink{cursor:cell}
+.shwbar{position:absolute;left:0;right:0;bottom:0;height:72px;z-index:20}
+html body .shwbar .shwctl{opacity:0!important;transition:opacity .18s;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 36px)}
+html body .shwbar:hover .shwctl{opacity:1!important}
+html body .shwbar .shwctl{background:rgba(10,26,19,.88);padding:7px 9px;border-radius:8px;bottom:10px}
+@media (hover:none){html body .shwbar .shwctl{opacity:1!important}}
+.shwctl button.on{background:#fff;color:var(--forest)}
+.shwctl .shwsep{width:1px;height:24px;background:rgba(255,255,255,.5);margin:0 2px}
+#shwlaser{position:fixed;left:0;top:0;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;pointer-events:none;z-index:30;display:none;
+ background:radial-gradient(circle,#fff 0 14%,#ff3b3b 30%,#e00000 52%,rgba(230,0,0,.35) 68%,rgba(230,0,0,0) 74%);box-shadow:0 0 12px 5px rgba(255,20,20,.55)}
+#shw.tl-laser #shwlaser.in{display:block}
 .sldc{font-size:15px}.shwslide .sldivt{font-size:54px}
 .shwctl{position:absolute;right:18px;bottom:14px;display:flex;gap:8px;align-items:center;opacity:.25;transition:opacity .2s;font-family:var(--cond);color:#fff}
 .shwctl:hover{opacity:1}.shwctl button{background:var(--forest);color:#fff;border:1px solid #fff;border-radius:4px;padding:6px 12px;font-family:var(--cond);font-size:15px;cursor:pointer}.shwctl button[disabled]{opacity:.35}
@@ -1036,6 +1063,42 @@ function contHTML(){var tid=null;try{tid=localStorage.getItem(lastKey())}catch(x
  if(!hit){lbl="Start here";ALLCH.forEach(function(c){if(hit||(S.u!=null&&UNITS[S.u]&&UNITS[S.u].chs.indexOf(c.id)<0))return;c.topics.forEach(function(t,i){if(!hit&&!S.done[t.id])hit={c:c,t:t,i:i}})});if(hit&&Object.keys(S.done).length)lbl="Next section to study"}
  if(!hit)return "";
  return '<button class="card contc" data-t="'+hit.t.id+'"><span class="hud">'+lbl+'</span><b>'+hit.c.num+'.'+(hit.i+1)+' &nbsp;'+esc(hit.t.title)+'</b><span class="contgo">Open &rarr;</span></button>'}
+/* ---------- full screen slides: laser pointer, pen, highlighter, clear, 16:9 or 4:3 (Nov 24 2026) ----------
+   The buttons stay at the bottom right and show only while the pointer is over the bottom of the screen. Ink is kept per slide
+   while the page is open, so going back to a slide shows what was written on it. */
+var SHT={tool:"laser",ar:(function(){try{return localStorage.getItem("uamsl:ar")==="43"?"43":"169"}catch(e){return "169"}})(),ink:(typeof WeakMap==="function")?new WeakMap():null,cur:null};
+function shwW(){return SHT.ar==="43"?960:1280}
+function shwInk(){if(!SHOW||!SHT.ink)return [];var x=SHOW.list[SHOW.k],a=SHT.ink.get(x);if(!a){a=[];SHT.ink.set(x,a)}return a}
+function shwPaint(){var cv=document.querySelector("#shw .shwink");if(!cv)return;var W=shwW(),c=cv.getContext("2d");c.setTransform(2,0,0,2,0,0);c.clearRect(0,0,W,720);
+ shwInk().forEach(function(s){if(s.ar!==SHT.ar||!s.p.length)return;c.save();c.lineCap="round";c.lineJoin="round";
+  if(s.t==="hl"){c.globalCompositeOperation="multiply";c.strokeStyle="rgba(255,226,0,.55)";c.lineWidth=26}else{c.strokeStyle="#e0161b";c.lineWidth=4}
+  c.beginPath();c.moveTo(s.p[0][0],s.p[0][1]);if(s.p.length===1)c.lineTo(s.p[0][0]+.1,s.p[0][1]);for(var i=1;i<s.p.length;i++)c.lineTo(s.p[i][0],s.p[i][1]);c.stroke();c.restore()})}
+function shwExtra(){var shw=document.getElementById("shw");if(!shw||!SHOW)return;var st=shw.querySelector(".shwslide"),ctl=shw.querySelector(".shwctl");
+ shw.classList.remove("tl-laser","tl-pen","tl-hl");shw.classList.add("tl-"+SHT.tool);
+ if(st){st.classList.toggle("ar43",SHT.ar==="43");var W=shwW();var cv=document.createElement("canvas");cv.className="shwink";cv.width=W*2;cv.height=1440;cv.style.width=W+"px";st.appendChild(cv);
+  var sl=st.querySelector(".sld");if(sl&&typeof sldShrink==="function")try{sldShrink(sl)}catch(e){}
+  st.addEventListener("load",function(){var s2=st.querySelector(".sld");if(s2&&typeof sldShrink==="function")try{sldShrink(s2)}catch(e){}},true)}
+ if(ctl){var bar=document.createElement("div");bar.className="shwbar";ctl.parentNode.insertBefore(bar,ctl);bar.appendChild(ctl);
+  var g=ctl.querySelector('[data-sv="g"]'),d=document.createElement("span");d.style.display="contents";
+  d.innerHTML='<span class="shwsep"></span>'+[["laser","Laser"],["pen","Pen"],["hl","Highlighter"]].map(function(x){return '<button type="button" data-tl="'+x[0]+'"'+(SHT.tool===x[0]?' class="on"':'')+'>'+x[1]+'</button>'}).join("")+'<button type="button" data-tl="clear">Clear ink</button><span class="shwsep"></span><button type="button" data-ar="169"'+(SHT.ar==="169"?' class="on"':'')+'>16:9</button><button type="button" data-ar="43"'+(SHT.ar==="43"?' class="on"':'')+'>4:3</button><span class="shwsep"></span>';
+  ctl.insertBefore(d,g||null)}
+ var lz=document.createElement("div");lz.id="shwlaser";shw.appendChild(lz);
+ showFit();shwPaint()}
+(function(){
+ function pt(cv,e){var r=cv.getBoundingClientRect(),W=shwW();return [(e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*720]}
+ document.addEventListener("pointerdown",function(e){var cv=e.target.closest&&e.target.closest("#shw .shwink");if(!cv||!SHOW||SHT.tool==="laser")return;e.preventDefault();
+  SHT.cur={t:SHT.tool,ar:SHT.ar,p:[pt(cv,e)]};shwInk().push(SHT.cur);try{cv.setPointerCapture(e.pointerId)}catch(x){}shwPaint()});
+ document.addEventListener("pointermove",function(e){if(SHOW){var lz=document.getElementById("shwlaser");if(lz){lz.style.left=e.clientX+"px";lz.style.top=e.clientY+"px";lz.classList.toggle("in",!(e.target.closest&&e.target.closest(".shwctl,.shwgrid")))}}
+  if(!SHT.cur)return;var cv=document.querySelector("#shw .shwink");if(!cv)return;SHT.cur.p.push(pt(cv,e));shwPaint()});
+ function end(){SHT.cur=null}
+ document.addEventListener("pointerup",end);document.addEventListener("pointercancel",end);
+ document.addEventListener("mouseleave",function(){var lz=document.getElementById("shwlaser");if(lz)lz.classList.remove("in")});
+ document.addEventListener("click",function(e){if(!SHOW||!e.target.closest)return;
+  var b=e.target.closest("#shw [data-tl],#shw [data-ar]");
+  if(b){e.stopPropagation();b.blur();if(b.dataset.ar){SHT.ar=b.dataset.ar;try{localStorage.setItem("uamsl:ar",SHT.ar)}catch(x){}showDraw();return}
+   if(b.dataset.tl==="clear"){var a=shwInk();a.splice(0,a.length);shwPaint();return}SHT.tool=b.dataset.tl;var sh=document.getElementById("shw");sh.classList.remove("tl-laser","tl-pen","tl-hl");sh.classList.add("tl-"+SHT.tool);sh.querySelectorAll("[data-tl]").forEach(function(x){x.classList.toggle("on",x.dataset.tl===SHT.tool)});return}
+  if(SHT.tool!=="laser"&&e.target.closest("#shw .shwstage"))e.stopPropagation()},true);
+})();
 
 /* ---------- class server: sync, uploads, teacher dashboard ---------- */
 function isAdmin(){return window.UAMUSER&&window.UAMUSER.r==="admin"}
@@ -3868,7 +3931,11 @@ function sldFitAll(){document.querySelectorAll(".sldeck > .sld").forEach(functio
  document.querySelectorAll(".sldfit").forEach(function(fr){var inn=fr.firstChild,w=fr.clientWidth;if(!w||!inn)return;inn.style.transform="scale("+(w/1280)+")";var sl=inn.firstChild;if(sl&&!sl.getAttribute("data-fit")){sl.setAttribute("data-fit","1");sldShrink(sl)}})}
 function sldOver(sl){var ft=sl.querySelector(".sldft"),lim=(ft?ft.getBoundingClientRect().top:sl.getBoundingClientRect().bottom)+1,bad=false;
  sl.querySelectorAll(".sldh,.sldb ul,.sldb ol,.sldf img,.sldf svg,.sldc").forEach(function(e){if(e.getBoundingClientRect().bottom>lim)bad=true});return bad||sl.scrollHeight>sl.clientHeight+2}
-function sldShrink(sl){var fs=24,k=0;while(sldOver(sl)&&k++<16){fs-=1.2;sl.querySelectorAll(".sldb ul,.sldov").forEach(function(u){u.style.setProperty("font-size",fs+"px","important")})}}
+/* every picture sits in the same frame (Nov 24 2026): a drawing without a viewBox gets one so it scales inside the frame instead of being cut;
+   a title too long for its one-line band is made smaller so the frame below it keeps the same size on every slide */
+function sldSvgBox(sl){sl.querySelectorAll(".sldf svg").forEach(function(v){if(!v.getAttribute("viewBox")){var w=parseFloat(v.getAttribute("width")),h=parseFloat(v.getAttribute("height"));if(!(w&&h)){try{var bb=v.getBBox();w=bb.x+bb.width;h=bb.y+bb.height}catch(e){}}if(w&&h)v.setAttribute("viewBox","0 0 "+w+" "+h)}if(v.getAttribute("viewBox")){v.removeAttribute("width");v.removeAttribute("height")}})}
+function sldTitleFit(sl){var h=sl.querySelector(".sldh");if(!h)return;var fs=40,k=0;h.style.setProperty("font-size",fs+"px","important");while(h.scrollHeight>h.clientHeight+1&&k++<10){fs-=2;h.style.setProperty("font-size",fs+"px","important")}}
+function sldShrink(sl){sldSvgBox(sl);sldTitleFit(sl);var fs=24,k=0;while(sldOver(sl)&&k++<16){fs-=1.2;sl.querySelectorAll(".sldb ul,.sldov").forEach(function(u){u.style.setProperty("font-size",fs+"px","important")})}}
 (function(){var t=null;function go(){t=null;try{sldFitAll()}catch(e){}}function q(){if(!t)t=setTimeout(go,30)}
  try{new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var a=ms[i].addedNodes;for(var j=0;j<a.length;j++){var n=a[j];if(n.nodeType===1&&(n.classList.contains("sldeck")||n.querySelector&&n.querySelector(".sldeck")||n.closest&&n.closest(".sldeck"))){q();return}}}}).observe(document.body,{childList:true,subtree:true})}catch(e){}
  window.addEventListener("resize",q);document.addEventListener("load",function(e){var f=e.target&&e.target.closest&&e.target.closest(".sldfit");if(f){var sl=f.querySelector(".sld");if(sl)sl.removeAttribute("data-fit");q()}},true);q()})();
@@ -4248,10 +4315,10 @@ function showStart(kind){
 function showDraw(){
  var L=SHOW.list,k=SHOW.k;
  shw.innerHTML='<div class="shwstage"><div class="shwslide">'+sldHTML(L[k],k,L.length)+'</div></div><div class="shwctl"><button data-sv="-1"'+(k===0?' disabled':'')+'>&larr;</button><span>'+(k+1)+' / '+L.length+'</span><button data-sv="1"'+(k===L.length-1?' disabled':'')+'>&rarr;</button>'+(function(){if(SHOW.kind!=="t")return "";var t=topicById(S.tid),n=TOPICS[TOPICS.indexOf(t)+1];return n?'<button data-sv="n" class="shwnx" title="Next section: '+esc(n.title)+'">Next section &#8677;</button>':''})()+'<button data-sv="g">All slides</button><button data-sv="x">Exit</button></div>'+(SHOW.grid?showGrid():'');
- showFit();
+ showFit();if(typeof shwExtra==="function")shwExtra();
 }
 function showGrid(){return '<div class="shwgrid"><div class="shwgh"><b>All slides</b><button data-sv="g">Close</button></div><div class="shwgl">'+SHOW.list.map(function(x,i){var t=x.ttl?'Title':x.ov?'Overview':x.div?('Section '+x.no+': '+x.title):x.title;return '<button class="shwt'+(i===SHOW.k?' on':'')+(x.div||x.ttl?' dv':'')+'" data-go="'+i+'"><span class="n">'+(i+1)+'</span>'+(x.img?'<img src="'+x.img+'" alt="" loading="lazy" decoding="async">':'')+'<span class="tt">'+t+'</span></button>'}).join("")+'</div></div>'}
-function showFit(){var el=shw.querySelector(".shwslide");if(!el)return;var sc=Math.min(window.innerWidth/1280,window.innerHeight/720);el.style.transform="scale("+sc+")"}
+function showFit(){var el=shw.querySelector(".shwslide");if(!el)return;var sc=Math.min(window.innerWidth/(typeof shwW==="function"?shwW():1280),window.innerHeight/720);el.style.transform="scale("+sc+")"}
 function showMove(d){if(!SHOW)return;var n=Math.max(0,Math.min(SHOW.list.length-1,SHOW.k+d));if(n!==SHOW.k){SHOW.k=n;showDraw()}}
 function showEnd(){if(!SHOW)return;var s0=SHOW;SHOW=null;shw.classList.remove("on");shw.innerHTML="";
  if(s0.kind==="t"){S.sl=s0.k;if(S.view==="topic"){if(s0.moved){render();if(typeof slAnchor==="function")slAnchor()}else topic()}}else{S.sk=s0.k;if(S.view==="slides")slidesView()}
@@ -4259,7 +4326,7 @@ function showEnd(){if(!SHOW)return;var s0=SHOW;SHOW=null;shw.classList.remove("o
 window.addEventListener("resize",showFit);
 document.addEventListener("fullscreenchange",function(){if(!document.fullscreenElement&&SHOW)showEnd()});
 document.addEventListener("webkitfullscreenchange",function(){if(!document.webkitFullscreenElement&&SHOW)showEnd()});
-shw.addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.go!==undefined){e.stopPropagation();SHOW.k=+b.dataset.go;SHOW.grid=false;showDraw();return}if(b&&b.dataset.sv){e.stopPropagation();if(b.dataset.sv==="n"){var t0=topicById(S.tid),n0=TOPICS[TOPICS.indexOf(t0)+1];if(n0){S.tid=n0.id;S.sl=0;S.tab="slides";SHOW.list=secDeck(n0);SHOW.k=0;SHOW.moved=1;SHOW.grid=false;showDraw()}return}if(b.dataset.sv==="x")showEnd();else if(b.dataset.sv==="g"){SHOW.grid=!SHOW.grid;showDraw()}else showMove(+b.dataset.sv);return}if(e.target.closest(".shwgrid"))return;
+shw.addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.go!==undefined){e.stopPropagation();SHOW.k=+b.dataset.go;SHOW.grid=false;showDraw();return}if(b&&b.dataset.sv){e.stopPropagation();if(b.dataset.sv==="n"){var t0=topicById(S.tid),n0=TOPICS[TOPICS.indexOf(t0)+1];if(n0){S.tid=n0.id;S.sl=0;S.tab="slides";SHOW.list=secDeck(n0);SHOW.k=0;SHOW.moved=1;SHOW.grid=false;showDraw()}return}if(b.dataset.sv==="n"){var t0=topicById(S.tid),n0=TOPICS[TOPICS.indexOf(t0)+1];if(n0){S.tid=n0.id;S.sl=0;S.tab="slides";SHOW.list=secDeck(n0);SHOW.k=0;SHOW.moved=1;SHOW.grid=false;showDraw()}return}if(b.dataset.sv==="x")showEnd();else if(b.dataset.sv==="g"){SHOW.grid=!SHOW.grid;showDraw()}else showMove(+b.dataset.sv);return}if(e.target.closest(".shwgrid"))return;
  if(e.target.closest(".shwctl"))return;showMove(e.clientX<window.innerWidth/3?-1:1)});
 document.addEventListener("keydown",function(e){if(!SHOW)return;var k=e.key;
  if(SHOW.grid&&k!=="Escape"&&k!=="g"&&k!=="G")return;if(k==="ArrowRight"||k==="ArrowDown"||k==="PageDown"||k===" "||k==="Enter"){e.preventDefault();e.stopImmediatePropagation();showMove(1)}
