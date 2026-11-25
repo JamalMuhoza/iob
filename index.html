@@ -775,6 +775,9 @@ html body .shwbar .shwctl button[data-sv="-1"],html body .shwbar .shwctl button[
 .lvmeasure li::before{display:none!important}
 
 html body #shw .shwbar.lvpl{height:auto}html body #shw .shwbar.lvpl .shwctl{top:0;bottom:auto}
+
+/* figures with molecules drawn inside them (nested svg): keep the inner drawing at its own size and place */
+svg svg:not(#lvz),html body svg svg:not(#lvz){max-width:none!important;max-height:none!important;min-height:0!important;border:0!important;padding:0!important;margin:0!important;background:none!important;border-radius:0!important;cursor:inherit!important;box-shadow:none!important}
 .sldc{font-size:15px}.shwslide .sldivt{font-size:54px}
 .shwctl{position:absolute;right:18px;bottom:14px;display:flex;gap:8px;align-items:center;opacity:.25;transition:opacity .2s;font-family:var(--cond);color:#fff}
 .shwctl:hover{opacity:1}.shwctl button{background:var(--forest);color:#fff;border:1px solid #fff;border-radius:4px;padding:6px 12px;font-family:var(--cond);font-size:15px;cursor:pointer}.shwctl button[disabled]{opacity:.35}
@@ -1358,7 +1361,7 @@ function lvStep(first){var shw=document.getElementById("shw");if(!shw||!SHOW)ret
 /* ---------- figure highlights (Nov 26 2026): each bullet zooms toward the part of the figure it is about, outlines it, dims the
    rest and points at it with an arrow; the data (live/<chapter>.json "ann") lists one box per bullet ---------- */
 function lvChap(){var t=typeof topicById==="function"?topicById(S.tid):null;if(!t)return null;var c=t._ch||(typeof ALLCH!=="undefined"?ALLCH.filter(function(x){return x.topics.indexOf(t)>=0})[0]:null);return c?c.id:null}
-function lvData(){var f=lvChap();if(!f)return Promise.reject(0);if(!LV.data[f])LV.data[f]=fetch(LV.B+"live/"+f+".json?v=3").then(function(r){if(!r.ok)throw 0;return r.json()}).catch(function(x){delete LV.data[f];throw x});return LV.data[f]}
+function lvData(){var f=lvChap();if(!f)return Promise.reject(0);if(!LV.data[f])LV.data[f]=fetch(LV.B+"live/"+f+".json?v=4").then(function(r){if(!r.ok)throw 0;return r.json()}).catch(function(x){delete LV.data[f];throw x});return LV.data[f]}
 function lvAnn(d){var x=SHOW&&SHOW.list[SHOW.k];if(!x||!d||!d.ann)return null;return d.ann[S.tid+"|"+lvTxt(x.title)]||null}
 function lvFig(st,first){var shw=document.getElementById("shw"),f=shw&&shw.querySelector(".shwslide .sldf"),el=f&&f.querySelector(":scope > img,:scope > svg");if(!el)return;
  var k=SHOW.k;lvData().then(function(d){if(!SHOW||SHOW.k!==k||!el.isConnected)return;var a=lvAnn(d),x=SHOW.list[SHOW.k],e=d.m&&d.m[S.tid+"|"+lvTxt(x.title)];lvMark(f,el,a?a[Math.min(st,a.length-1)]:null,first,!!a)}).catch(function(){if(el.isConnected)lvMark(f,el,null,first,false)})}
