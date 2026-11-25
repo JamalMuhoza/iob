@@ -703,7 +703,8 @@ html body .sldfit.ar43 .sld .sldb.two{grid-template-columns:minmax(0,1fr) minmax
 .shwnav button{width:54px;height:40px;border-radius:8px;border:1px solid rgba(255,255,255,.35);background:rgba(0,102,74,.32);color:#fff;opacity:.55;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity .15s,background .15s}
 .shwnav button:hover{opacity:1;background:rgba(0,102,74,.9)}.shwnav button[disabled]{opacity:.15;cursor:default}
 .shwnav button svg{width:24px;height:24px}
-html body .shwbar .shwctl button[data-sv="-1"],html body .shwbar .shwctl button[data-sv="1"]{display:none}
+html body .shwbar .shwctl button[data-sv="-1"],html body .shwbar .shwctl button[data-sv="1"],html body .shwbar .shwctl button[data-sv="n"]{display:none}
+.shwnav button.shwsec{width:46px;opacity:.4;background:rgba(0,102,74,.22)}.shwnav button.shwsec:hover{opacity:1;background:rgba(0,102,74,.9)}.shwnav button.shwsec[disabled]{opacity:.1}
 .tabnav{display:flex;justify-content:space-between;gap:10px;margin:0 0 12px}
 .sldc .fno{color:var(--forest)}
 .hdnx{margin-left:8px}
@@ -1134,7 +1135,7 @@ function shwPaint(){var cv=document.querySelector("#shw .shwink");if(!cv)return;
   if(s.t==="hl"){c.globalCompositeOperation="multiply";c.strokeStyle="rgba(255,226,0,.55)";c.lineWidth=26}else{c.strokeStyle="#e0161b";c.lineWidth=4}
   c.beginPath();c.moveTo(s.p[0][0],s.p[0][1]);if(s.p.length===1)c.lineTo(s.p[0][0]+.1,s.p[0][1]);for(var i=1;i<s.p.length;i++)c.lineTo(s.p[i][0],s.p[i][1]);c.stroke();c.restore()})}
 var SHI=(function(){function v(p,ex){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'}
- return {prev:v('<path d="M15 5l-7 7 7 7"/>'),next:v('<path d="M9 5l7 7-7 7"/>'),sec:v('<path d="M5 5l7 7-7 7"/><path d="M12 5l7 7-7 7"/>'),
+ return {prev:v('<path d="M15 5l-7 7 7 7"/>'),next:v('<path d="M9 5l7 7-7 7"/>'),sec:v('<path d="M5 5l7 7-7 7"/><path d="M12 5l7 7-7 7"/>'),psec:v('<path d="M19 5l-7 7 7 7"/><path d="M12 5l-7 7 7 7"/>'),
   laser:v('<circle cx="12" cy="12" r="3.2" fill="#ff3030" stroke="#ff3030"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>'),
   pen:v('<path d="M16.5 3.5l4 4L8 20H4v-4z"/><path d="M13.5 6.5l4 4"/>'),
   hl:v('<path d="M14 4l6 6-7.5 7.5h-6v-6z"/><path d="M6.5 17.5L4 20h6"/><path d="M3 22h18" stroke="#ffe200" stroke-width="3"/>'),
@@ -1157,7 +1158,10 @@ function shwExtra(){var shw=document.getElementById("shw");if(!shw||!SHOW)return
   ctl.insertBefore(d,g||null)}
  /* previous / next arrows: always there, faint, at the bottom middle (clicking the slide itself never changes slides) */
  var nv=document.createElement("div");nv.className="shwnav";var k0=SHOW.k,n0=SHOW.list.length;
- nv.innerHTML='<button type="button" data-sv="-1" title="Previous slide" aria-label="Previous slide"'+(k0===0?' disabled':'')+'>'+SHI.prev+'</button><button type="button" data-sv="1" title="Next slide" aria-label="Next slide"'+(k0===n0-1?' disabled':'')+'>'+SHI.next+'</button>';shw.appendChild(nv);
+ /* Nov 25 2026: previous section and next section arrows on either side of them, same faint green */
+ var tS=SHOW.kind==="t"&&typeof topicById==="function"?topicById(S.tid):null,iS=tS?TOPICS.indexOf(tS):-1,pS=iS>0?TOPICS[iS-1]:null,nS=iS>=0?TOPICS[iS+1]:null;
+ nv.innerHTML=(tS?'<button type="button" class="shwsec" data-svp="1" title="'+(pS?'Previous section: '+esc(pS.title):'Previous section')+'" aria-label="Previous section"'+(pS?'':' disabled')+'>'+SHI.psec+'</button>':'')+'<button type="button" data-sv="-1" title="Previous slide" aria-label="Previous slide"'+(k0===0?' disabled':'')+'>'+SHI.prev+'</button><button type="button" data-sv="1" title="Next slide" aria-label="Next slide"'+(k0===n0-1?' disabled':'')+'>'+SHI.next+'</button>'+(tS?'<button type="button" class="shwsec" data-sv="n" title="'+(nS?'Next section: '+esc(nS.title):'Next section')+'" aria-label="Next section"'+(nS?'':' disabled')+'>'+SHI.sec+'</button>':'');shw.appendChild(nv);
+ var pb=nv.querySelector("[data-svp]");if(pb&&pS)pb.addEventListener("click",function(e){e.stopPropagation();S.tid=pS.id;S.sl=0;S.tab="slides";SHOW.list=secDeck(pS);SHOW.k=0;SHOW.moved=1;SHOW.grid=false;showDraw()});
  var lz=document.createElement("div");lz.id="shwlaser";shw.appendChild(lz);
  showFit();shwPaint();seenSlides()}
 (function(){
