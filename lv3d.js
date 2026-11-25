@@ -160,9 +160,22 @@
   function buildAtom(C, m) {
     var THREE = C.T, g = new THREE.Group(), sh = m.shells || [2], i, k, ne = 0;
     sh.forEach(function (x) { ne += x; });
-    var nuc = C.spheres(17), fib = Math.PI * (3 - Math.sqrt(5));
-    nuc.set(0, 0, 0, 0, 0.27, '#d65a4f');
-    for (i = 1; i < 17; i++) { var y = 1 - 2 * (i - 0.5) / 16, rr = Math.sqrt(1 - y * y), th = i * fib; nuc.set(i, 0.55 * rr * Math.cos(th), 0.55 * y, 0.55 * rr * Math.sin(th), 0.27, i % 2 ? '#d65a4f' : '#b9c2bf'); }
+    var nuc, fib = Math.PI * (3 - Math.sqrt(5)), np = m.p | 0, nn = m.n | 0;
+    if (np > 0 && np + nn <= 40) { // exact nucleus: np protons (red) and nn neutrons (gray), packed as a ball
+      var tot = np + nn, ord = [], q;
+      for (q = 0; q < tot; q++) ord.push([(Math.sin(q * 12.9898 + 4.1) * 43758.5453) % 1, q]);
+      ord.sort(function (u, w) { return u[0] - w[0]; }); var isPr = {}; for (q = 0; q < np; q++) isPr[ord[q][1]] = 1;
+      nuc = C.spheres(tot); var X = [], it, j, D = 0.5;
+      for (i = 0; i < tot; i++) { var yy = 1 - 2 * ((i + 0.5) / tot), r2 = Math.sqrt(1 - yy * yy), th2 = i * fib, rad = 0.6; X.push([rad * r2 * Math.cos(th2), rad * yy, rad * r2 * Math.sin(th2)]); }
+      for (it = 0; it < 160; it++) { // pack: pull to the centre, push overlapping nucleons apart
+        for (i = 0; i < tot; i++) { X[i][0] *= 0.97; X[i][1] *= 0.97; X[i][2] *= 0.97; }
+        for (i = 0; i < tot; i++) for (j = i + 1; j < tot; j++) { var dx = X[j][0] - X[i][0], dy = X[j][1] - X[i][1], dz = X[j][2] - X[i][2], dd = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1e-3;
+          if (dd < D) { var f = (D - dd) / dd * 0.5; X[i][0] -= dx * f; X[i][1] -= dy * f; X[i][2] -= dz * f; X[j][0] += dx * f; X[j][1] += dy * f; X[j][2] += dz * f; } } }
+      for (i = 0; i < tot; i++) nuc.set(i, X[i][0], X[i][1], X[i][2], 0.26, isPr[i] ? '#d65a4f' : '#b9c2bf');
+    } else {
+      nuc = C.spheres(17); nuc.set(0, 0, 0, 0, 0.27, '#d65a4f');
+      for (i = 1; i < 17; i++) { var y = 1 - 2 * (i - 0.5) / 16, rr = Math.sqrt(1 - y * y), th = i * fib; nuc.set(i, 0.55 * rr * Math.cos(th), 0.55 * y, 0.55 * rr * Math.sin(th), 0.27, i % 2 ? '#d65a4f' : '#b9c2bf'); }
+    }
     nuc.done(); g.add(nuc);
     var ringMat = C.basic({ color: 0x8a9a94, transparent: true, opacity: 0.4 }), el = C.spheres(ne, C.phong({ color: 0xffffff, emissive: new THREE.Color('#2f9e6e'), emissiveIntensity: 0.55, shininess: 80 })),
       halo = C.spheres(ne, C.basic({ color: 0x2f9e6e, transparent: true, opacity: 0.16, depthWrite: false }), [12, 8]), rings = [], R = 0;
