@@ -767,7 +767,10 @@ html body .shwbar .shwctl button[data-sv="-1"],html body .shwbar .shwctl button[
 @keyframes lvshow{to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.lvov.go .lvring,.lvov.go .lvarr{animation-duration:.01s}}
 
-.lv3{background:radial-gradient(ellipse at 50% 55%,rgba(230,242,237,.9),rgba(230,242,237,0) 70%);border-radius:14px}
+.lv3.full{border-radius:4px;background:radial-gradient(ellipse at 50% 45%,#ffffff 0%,#f3f8f5 60%,#e6f1eb 100%);box-shadow:inset 0 0 0 1px rgba(0,102,74,.12)}
+.lv3.full.k-protein,.lv3.full.k-dna,.lv3.full.k-membrane{background:radial-gradient(ellipse at 50% 45%,#ffffff 0%,#eef5f9 62%,#dfeaf1 100%)}
+.lv3.full.k-atom,.lv3.full.k-orbital{background:radial-gradient(ellipse at 50% 50%,#ffffff 0%,#f4f6fb 65%,#e7ebf4 100%)}
+.lv3.full .lv3l{bottom:10px;font-size:17px}
 #shw.live .sld .sldb{position:relative}
 .lvmeasure li::before{display:none!important}
 .sldc{font-size:15px}.shwslide .sldivt{font-size:54px}
@@ -1356,7 +1359,7 @@ function lvChap(){var t=typeof topicById==="function"?topicById(S.tid):null;if(!
 function lvData(){var f=lvChap();if(!f)return Promise.reject(0);if(!LV.data[f])LV.data[f]=fetch(LV.B+"live/"+f+".json?v=2").then(function(r){if(!r.ok)throw 0;return r.json()}).catch(function(x){delete LV.data[f];throw x});return LV.data[f]}
 function lvAnn(d){var x=SHOW&&SHOW.list[SHOW.k];if(!x||!d||!d.ann)return null;return d.ann[S.tid+"|"+lvTxt(x.title)]||null}
 function lvFig(st,first){var shw=document.getElementById("shw"),f=shw&&shw.querySelector(".shwslide .sldf"),el=f&&f.querySelector(":scope > img,:scope > svg");if(!el)return;
- var k=SHOW.k;lvData().then(function(d){if(!SHOW||SHOW.k!==k||!el.isConnected)return;var a=lvAnn(d),x=SHOW.list[SHOW.k],e=d.m&&d.m[S.tid+"|"+lvTxt(x.title)];if(e&&(!LV.spot||LV.spot.x!==x)){var sl=f.closest(".sld");if(sl&&!LV.rm){sl.dataset.lvres="180";lvReserve(sl,180)}LV.spot={x:x,r:lvSpot(f,el)}}lvMark(f,el,a?a[Math.min(st,a.length-1)]:null,first,!!a)}).catch(function(){if(el.isConnected)lvMark(f,el,null,first,false)})}
+ var k=SHOW.k;lvData().then(function(d){if(!SHOW||SHOW.k!==k||!el.isConnected)return;var a=lvAnn(d),x=SHOW.list[SHOW.k],e=d.m&&d.m[S.tid+"|"+lvTxt(x.title)];lvMark(f,el,a?a[Math.min(st,a.length-1)]:null,first,!!a)}).catch(function(){if(el.isConnected)lvMark(f,el,null,first,false)})}
 function lvGeo(el){/* the element's box inside its parent, unscaled, with the current live zoom taken back out (an svg has no offsetWidth) */
  var p=el.parentNode,r=el.getBoundingClientRect(),q=p.getBoundingClientRect(),k=q.width/(p.offsetWidth||1)||1,cs=getComputedStyle(el),tr=cs.transform,e=0,f=0,a=1;
  if(tr&&tr!=="none"){var v=tr.match(/-?[\d.e]+/g).map(Number);if(v.length>=6){a=v[0]||1;e=v[4];f=v[5]}}
@@ -1367,12 +1370,12 @@ function lvBox(el){/* the drawn picture inside the element (borders, padding and
   G=lvGeo(el),W=G.W,H=G.H,iw=W-bl-parseFloat(cs.borderRightWidth)-parseFloat(cs.paddingRight),ih=H-bt-parseFloat(cs.borderBottomWidth)-parseFloat(cs.paddingBottom),ar=0;
  if(el.tagName==="IMG")ar=el.naturalWidth/el.naturalHeight;else{try{var vb=el.viewBox.baseVal;if(vb&&vb.width)ar=vb.width/vb.height}catch(x){}}
  var cw=iw,ch=ih;if(ar){if(iw/ih>ar)cw=ih*ar;else ch=iw/ar}return {W:W,H:H,l:G.l,t:G.t,x:bl+(iw-cw)/2,y:bt+(ih-ch)/2,w:cw,h:ch,il:bl,it:bt,iw:iw,ih:ih}}
-function lvMark(f,el,a,first,has){var B=lvBox(el);if(!B.w||!B.h)return;
+function lvMark(f,el,a,first,has){var B=lvBox(el);if(!B.w||!B.h)return;if(LV.cur&&LV.cur.on&&LV.cur.k===SHOW.k&&LV.cur.box.isConnected){a=null;has=true}
  var ov=f.querySelector(".lvov");if(!ov){ov=document.createElementNS("http://www.w3.org/2000/svg","svg");ov.setAttribute("class","lvov");f.appendChild(ov)}
  ["left",B.l,"top",B.t,"width",B.W,"height",B.H,"max-width",B.W,"max-height",B.H,"min-height",0].forEach(function(v,i,A){if(i%2===0)ov.style.setProperty(v,A[i+1]+"px","important")});ov.setAttribute("viewBox","0 0 "+B.W+" "+B.H);
  var s=1,tx=0,ty=0,html="";
  if(a&&a.b){var bx=B.x+a.b[0]*B.w,by=B.y+a.b[1]*B.h,bw=a.b[2]*B.w,bh=a.b[3]*B.h;
-  if(a.z&&!LV.rm&&!(LV.spot&&LV.spot.x===SHOW.list[SHOW.k]&&LV.spot.r&&LV.spot.r.inFig)){s=Math.max(1,Math.min(1.9,Math.min(B.W*.62/bw,B.H*.62/bh)));tx=B.W/2-s*(bx+bw/2);ty=B.H/2-s*(by+bh/2);tx=Math.min(0,Math.max(B.W-s*B.W,tx));ty=Math.min(0,Math.max(B.H-s*B.H,ty))}
+  if(a.z&&!LV.rm){s=Math.max(1,Math.min(1.9,Math.min(B.W*.62/bw,B.H*.62/bh)));tx=B.W/2-s*(bx+bw/2);ty=B.H/2-s*(by+bh/2);tx=Math.min(0,Math.max(B.W-s*B.W,tx));ty=Math.min(0,Math.max(B.H-s*B.H,ty))}
   var p=6/s,vxa=-tx/s+2/s,vya=-ty/s+2/s,vxb=vxa+B.W/s-4/s,vyb=vya+B.H/s-4/s,X=Math.max(vxa,bx-p),Y=Math.max(vya,by-p),Wd=Math.min(vxb,bx+bw+p)-X,Hd=Math.min(vyb,by+bh+p)-Y,r=Math.min(12/s,Wd/4,Hd/4),sw=3.5/s;
   var shape=a.s==="e"?'<ellipse cx="'+(X+Wd/2)+'" cy="'+(Y+Hd/2)+'" rx="'+(Wd/2+4/s)+'" ry="'+(Hd/2+4/s)+'"':'<rect x="'+X+'" y="'+Y+'" width="'+Wd+'" height="'+Hd+'" rx="'+r+'"';
   var hole=a.s==="e"?lvEll(X+Wd/2,Y+Hd/2,Wd/2+4/s,Hd/2+4/s):"M"+X+" "+Y+"h"+Wd+"v"+Hd+"h"+(-Wd)+"z";
@@ -1399,12 +1402,12 @@ function lvSpot(f,el){/* the largest empty place for the 3D card: under the bull
  var r=C[0];if(!r)return null;var H=Math.min(r.h,250),W=Math.min(r.w,Math.round(H*1.6));return {host:r.host,inFig:!!r.inFig,x:r.x+(r.w-W)/2,y:r.y+(r.h-H)/2,w:W,h:H}}
 function lvEll(cx,cy,rx,ry){return "M"+(cx-rx)+" "+cy+"a"+rx+" "+ry+" 0 1 0 "+(2*rx)+" 0a"+rx+" "+ry+" 0 1 0 "+(-2*rx)+" 0z"}
 function lv3Off(){var c=LV.cur;if(!c)return;c.on=false;c.box.classList.remove("in")}
-function lv3On(e){/* a small card with the turning model in the free space under the bullets; never over the figure */
- var shw=document.getElementById("shw"),b=shw&&shw.querySelector(".shwslide .sldb"),ul=b&&b.querySelector(":scope > ul,:scope > ol");if(!ul)return;
+function lv3On(e){/* the turning model fills the figure area on its own background, from its bullet on */
+ var shw=document.getElementById("shw"),f=shw&&shw.querySelector(".shwslide .sldf"),el=f&&f.querySelector(":scope > img,:scope > svg");if(!el)return;
  if(LV.cur&&LV.cur.box.isConnected){if(!LV.cur.on){LV.cur.on=true;LV.cur.t0=performance.now();if(LV.cur.ready)lvShow()}return}
- lvKill();var sp=LV.spot&&LV.spot.x===SHOW.list[SHOW.k]?LV.spot.r:null;if(!sp)return;
- var box=document.createElement("div");box.className="lv3";box.style.left=sp.x+"px";box.style.top=sp.y+"px";box.style.width=sp.w+"px";box.style.height=sp.h+"px";var W=sp.w,H=sp.h;
- box.innerHTML='<div class="lv3l">'+lvFmt(e.l)+'</div>';sp.host.appendChild(box);
+ lvKill();var B=lvBox(el);el.style.transform="translate(0px,0px) scale(1)";el.style.clipPath="inset(0px)";var ov0=f.querySelector(".lvov");if(ov0)ov0.innerHTML="";var W=Math.round(B.W),H=Math.round(B.H),box=document.createElement("div");box.className="lv3 full k-"+((e.mo&&e.mo.kind)||"mol");
+ box.style.left=B.l+"px";box.style.top=B.t+"px";box.style.width=W+"px";box.style.height=H+"px";
+ box.innerHTML='<div class="lv3l">'+lvFmt(e.l)+'</div>';f.appendChild(box);
  var c=LV.cur={box:box,on:true,goal:0,g:0,t0:performance.now(),k:SHOW.k,W:W,H:H};
  lvLib().then(function(){if(LV.cur!==c||!box.isConnected)return;lvBuild(c,e.mo)}).catch(function(){})}
 function lvBuild(c,m){var T=window.THREE;if(!LV.ren){try{LV.ren=new T.WebGLRenderer({antialias:true,alpha:true,powerPreference:"low-power"});LV.ren.setClearColor(0,0);LV.ren.outputEncoding=T.sRGBEncoding}catch(x){LV.ren=false}}if(!LV.ren)return;
