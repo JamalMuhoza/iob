@@ -725,54 +725,153 @@ html body .shwbar .shwctl button[data-sv="-1"],html body .shwbar .shwctl button[
 .sldfit .sld .sldb ul,html body .shwslide .sld .sldb ul{padding-left:1.3em!important;margin-left:0!important}
 .sld .sldb li::marker{color:var(--forest)}
 .sld .sldc b:not(.fno){color:var(--forest)!important;font-weight:700}html.dark .sld .sldc b:not(.fno){color:var(--kelly)!important}
-/* ---------- live slides (full screen) ---------- */
+/* ---------- live slides (full screen), revised Nov 27 2026: never blank, never veiled, alive on every slide ---------- */
+#shw.lvzoom .shwslide{transform:none!important}
 #shw.live .shwslide .sld{isolation:isolate}
-#shw.live .sld .lvbg{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;fill:none;stroke:var(--forest,#00664a);stroke-width:1.2;opacity:.07}
-#shw.live .sld .lvbg .lvg1{animation:lvdrift 46s ease-in-out infinite alternate;transform-origin:1100px 300px}
-#shw.live .sld .lvbg .lvg2{animation:lvdrift2 58s ease-in-out infinite alternate;transform-origin:100px 600px}
-@keyframes lvdrift{from{transform:translate(0,0) rotate(0)}to{transform:translate(-40px,26px) rotate(9deg)}}
-@keyframes lvdrift2{from{transform:translate(0,0) rotate(0)}to{transform:translate(34px,-30px) rotate(-7deg)}}
-#shw.lvb .sld .sldb li{position:relative;transition:opacity .55s ease,color .55s ease,filter .55s ease}
-#shw.lvb .sld .sldb li.lvf{opacity:.5;filter:saturate(.45)}
+#shw.live .sld .sldb{position:relative}
+html body #shw.live .shwslide .sld .sldb{overflow:visible!important}
+.lvmeasure li::before,#shw .sld.lvmeasure .sldh::before,#shw .sld.lvmeasure .sldh::after{display:none!important}
+/* while the fitter or the highlight code measures, nothing is moved by the live motion (an !important rule wins over a running
+   animation without restarting it) */
+#shw .sld.lvmeasure .sldf,#shw .sld.lvmeasure .sldh,#shw .sld.lvmeasure .sldb li,#shw .sld.lvmeasure .sldivin,#shw .sld.lvmeasure .lvacc{transform:none!important;rotate:none!important;translate:none!important;scale:none!important}
+/* bullets: the current one keeps its bar, the ones still to come stay readable (a light fade, never grayed out) */
+#shw.lvb .sld .sldb li{position:relative;transition:opacity .55s ease}
+#shw.lvb .sld .sldb li.lvf{opacity:.65}
 #shw.lvb .sld .sldb li.lvc::before{content:"";position:absolute;left:-10px;right:0;top:-3px;bottom:-3px;z-index:-1;border-radius:7px;background:linear-gradient(90deg,rgba(47,158,110,.17),rgba(47,158,110,.05)) no-repeat 0 0/0% 100%;box-shadow:inset 3px 0 0 rgba(0,102,74,.55);animation:lvsweep .9s cubic-bezier(.2,.7,.2,1) forwards}
 #shw.lvb .sld .sldb li.lvc b{animation:lvpop .8s ease .15s}
 @keyframes lvsweep{to{background-size:100% 100%}}
 @keyframes lvpop{40%{text-shadow:0 0 14px rgba(47,158,110,.45)}}
+/* entrance: three choreographies (slide number mod 3); only "from" frames, so each element ends exactly at its own resting state */
+#shw.live .sld.lvin .sldh{animation:lvt0 .75s cubic-bezier(.2,.7,.2,1) backwards;transform-origin:0 50%}
+#shw.live .sld.lvin.lvv1 .sldh{animation-name:lvt1}#shw.live .sld.lvin.lvv2 .sldh{animation-name:lvt2}
+@keyframes lvt0{from{opacity:0;transform:translateY(18px)}}
+@keyframes lvt1{from{opacity:0;transform:translateX(-44px)}}
+@keyframes lvt2{from{opacity:0;transform:scale(.93)}}
+#shw.live .sld.lvin .sldb>ul>li,#shw.live .sld.lvin .sldb>ol>li{animation:lvb0 .6s cubic-bezier(.2,.7,.2,1) .3s backwards}
+#shw.live .sld.lvin.lvv1 .sldb>ul>li,#shw.live .sld.lvin.lvv1 .sldb>ol>li{animation-name:lvb1}
+#shw.live .sld.lvin.lvv2 .sldb>ul>li,#shw.live .sld.lvin.lvv2 .sldb>ol>li{animation-name:lvb2}
+#shw.live .sld.lvin .sldb>*>li:nth-child(2){animation-delay:0.39s}#shw.live .sld.lvin .sldb>*>li:nth-child(3){animation-delay:0.48s}#shw.live .sld.lvin .sldb>*>li:nth-child(4){animation-delay:0.57s}#shw.live .sld.lvin .sldb>*>li:nth-child(5){animation-delay:0.66s}#shw.live .sld.lvin .sldb>*>li:nth-child(6){animation-delay:0.75s}#shw.live .sld.lvin .sldb>*>li:nth-child(7){animation-delay:0.84s}#shw.live .sld.lvin .sldb>*>li:nth-child(8){animation-delay:0.93s}#shw.live .sld.lvin .sldb>*>li:nth-child(9){animation-delay:1.02s}
+@keyframes lvb0{from{opacity:0;transform:translateY(16px)}}
+@keyframes lvb1{from{opacity:0;transform:translateX(-30px)}}
+@keyframes lvb2{from{opacity:0;transform:translateX(22px)}}
+#shw.live .sld.lvin .sldivin{animation:lvdv .9s cubic-bezier(.2,.7,.2,1) backwards}
+@keyframes lvdv{from{opacity:0;transform:translateY(22px) scale(.97)}}
+/* the title underline draws in, then a small glint travels along it now and then */
+#shw.live .sld:not(.sldiv) .sldh{position:relative}
+#shw.live .sld:not(.sldiv) .sldh::after{content:"";position:absolute;left:0;bottom:0;width:210px;height:3px;border-radius:2px;background:linear-gradient(90deg,#00664a,#2f9e6e 65%,#c9a227);transform-origin:0 50%;animation:lvul .9s cubic-bezier(.3,.7,.2,1) .25s backwards}
+#shw.live .sld:not(.sldiv) .sldh::before{content:"";position:absolute;left:0;bottom:0;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle,#fff 0,#7ff0c0 35%,rgba(47,158,110,0) 70%);opacity:0;animation:lvglint 9s ease-in-out 1.6s infinite}
+@keyframes lvul{from{transform:scaleX(0)}}
+@keyframes lvglint{0%{opacity:0;transform:translateX(0)}6%{opacity:1}22%{opacity:1;transform:translateX(200px)}26%,100%{opacity:0;transform:translateX(200px)}}
+/* the figure card: real perspective, an idle drift (rotate / translate), a resting angle per bullet (transform, set by the page),
+   a soft shadow that moves with it */
 #shw.live .sld .sldf{position:relative;overflow:hidden}
-#shw.live .sld .sldf img{transition:transform 1.6s cubic-bezier(.25,.6,.25,1),opacity .9s ease}
-#shw.live .sld .sldf img.lvhide{opacity:0}
-#shw.live .sld.lvin .sldh,#shw.live .sld.lvin .sldivin{animation:lvup .7s cubic-bezier(.2,.7,.2,1) both}
-#shw.live .sld.lvin .sldf{animation:lvfade .9s ease .1s both}
-@keyframes lvup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-@keyframes lvfade{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
-.lv3{position:absolute;opacity:0;transition:opacity 1s ease;pointer-events:none;z-index:4}
+#shw.lvfg .sld .sldb.two{perspective:1700px;perspective-origin:72% 50%}
+#shw.lvfg .sld .sldf{animation:lvfloat 18s ease-in-out infinite;transition:transform 1.3s cubic-bezier(.25,.7,.25,1);box-shadow:0 22px 38px -20px rgba(0,58,40,.42),0 6px 14px -6px rgba(0,40,28,.14);backface-visibility:hidden}
+#shw.lvfg .sld.lvin .sldf{animation:lvc0 .95s cubic-bezier(.2,.75,.25,1) .1s backwards,lvfloat 18s ease-in-out 1.05s infinite}
+#shw.lvfg .sld.lvin.lvv1 .sldf{animation-name:lvc1,lvfloat}#shw.lvfg .sld.lvin.lvv2 .sldf{animation-name:lvc2,lvfloat}
+#shw.live:not(.lvfg) .sld.lvin .sldf{animation:lvc2 .8s cubic-bezier(.2,.75,.25,1) .1s backwards}
+@keyframes lvc0{from{opacity:.8;transform:translateY(34px) rotateX(9deg) scale(.97)}}
+@keyframes lvc1{from{opacity:.8;transform:translateX(50px) rotateY(-13deg)}}
+@keyframes lvc2{from{opacity:.8;transform:scale(.92)}}
+@keyframes lvfloat{0%,100%{rotate:0 1 0 0deg;translate:0 0}22%{rotate:-.5 1 0 1.7deg;translate:-3px 2px}48%{rotate:1 .35 0 1.5deg;translate:3px -3px}74%{rotate:.3 -1 0 1.8deg;translate:2px 3px}}
+#shw.lvflat .sld .sldf{animation:none!important;transform:none!important;transition:none!important}
+/* a picture still on its way from the server: a soft shimmer in the frame instead of an empty box */
+#shw .sld .sldf.lvwait{position:relative}
+#shw .sld .sldf.lvwait::before{content:"";position:absolute;left:12px;right:12px;top:12px;bottom:12px;border-radius:6px;z-index:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%2300664a' stroke-opacity='.18' stroke-width='2.4'%3E%3Cpolygon points='50,22 74,36 74,64 50,78 26,64 26,36'/%3E%3Cline x1='74' y1='36' x2='92' y2='26'/%3E%3C/g%3E%3C/svg%3E") center/38% no-repeat,linear-gradient(135deg,#eef6f2,#e3f0ea 55%,#eef6f2)}
+#shw .sld .sldf.lvwait::after{content:"";position:absolute;left:12px;right:12px;top:12px;bottom:12px;z-index:0;background:linear-gradient(100deg,rgba(255,255,255,0) 25%,rgba(255,255,255,.75) 50%,rgba(255,255,255,0) 75%);transform:translateX(-100%);animation:lvshim 1.5s ease-in-out infinite}
+#shw .sld .sldf.lvwait>.sldc{position:relative;z-index:1}
+@keyframes lvshim{to{transform:translateX(100%)}}
+/* highlights: a crisp line over a soft glow, drawn in around the part; the picture is never covered or dimmed */
+#shw.live .sld .sldf .lvzf{transform-box:border-box;transition:transform 1.2s cubic-bezier(.3,.6,.2,1),clip-path 1.2s cubic-bezier(.3,.6,.2,1)!important;will-change:transform}
+.lvov{transform-box:border-box;position:absolute;border:0!important;padding:0!important;background:none!important;margin:0!important;cursor:default!important;flex:none!important;object-fit:fill!important;pointer-events:none;overflow:visible;z-index:3;transition:transform 1.2s cubic-bezier(.3,.6,.2,1),clip-path 1.2s cubic-bezier(.3,.6,.2,1)}
+.lvov .lvring{fill:none;stroke:#00a067;stroke-dasharray:1;stroke-dashoffset:1;stroke-linecap:round;stroke-linejoin:round}
+.lvov .lvglow{fill:none;stroke:#3ee6a2;stroke-opacity:0;stroke-linejoin:round}
+.lvov.go .lvring{animation:lvdraw .9s cubic-bezier(.4,.1,.2,1) .45s forwards}
+.lvov.go .lvglow{animation:lvglow 2.6s ease .6s forwards}
+@keyframes lvglow{0%{stroke-opacity:0}35%{stroke-opacity:.5}100%{stroke-opacity:.3}}
+.lvov .lvarr{fill:none;stroke:#00664a;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}
+.lvov.go .lvarr{animation:lvdraw .55s ease-out 1.15s forwards}
+.lvov .lvhead{fill:#00664a;opacity:0}
+.lvov.go .lvhead{animation:lvshow .2s ease 1.6s forwards}
+@keyframes lvdraw{to{stroke-dashoffset:0}}
+@keyframes lvshow{to{opacity:1}}
+/* 3D scenes: on their own soft background over the figure, faded in only after their first frame */
+.lv3{position:absolute;opacity:0;transition:opacity .9s ease;pointer-events:none;z-index:4}
 .lv3.in{opacity:1}
 .lv3 canvas{display:block}
 .lv3 .lv3l{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);font-size:15px;color:var(--forest,#00664a);background:rgba(230,242,237,.85);padding:3px 12px;border-radius:20px;white-space:nowrap;letter-spacing:.01em}
-@media (prefers-reduced-motion:reduce){#shw.live .sld .lvbg g{animation:none}}
-/* figure highlights */
-#shw.live .sld .sldf .lvzf{transform-box:border-box;transition:transform 1.1s cubic-bezier(.3,.6,.2,1),clip-path 1.1s cubic-bezier(.3,.6,.2,1)!important;will-change:transform}
-.lvov{transform-box:border-box;position:absolute;border:0!important;padding:0!important;background:none!important;margin:0!important;cursor:default!important;flex:none!important;object-fit:fill!important;pointer-events:none;overflow:visible;z-index:3;transition:transform 1.1s cubic-bezier(.3,.6,.2,1),clip-path 1.1s cubic-bezier(.3,.6,.2,1)}
-.lvov .lvdim{fill:#fff;opacity:0;transition:opacity .8s ease}
-.lvov.go .lvdim{opacity:.42}
-.lvov .lvring{fill:none;stroke:#00ae6e;stroke-dasharray:1;stroke-dashoffset:1;stroke-linecap:round;filter:drop-shadow(0 0 4px rgba(0,174,110,.55))}
-.lvov.go .lvring{animation:lvdraw .9s cubic-bezier(.4,.1,.2,1) .35s forwards}
-.lvov .lvarr{fill:none;stroke:#00664a;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}
-.lvov.go .lvarr{animation:lvdraw .55s ease-out 1.05s forwards}
-.lvov .lvhead{fill:#00664a;opacity:0}
-.lvov.go .lvhead{animation:lvshow .2s ease 1.5s forwards}
-.lvov .lvlab{fill:#00513b;font-weight:700;font-family:var(--sans);stroke:#fff;paint-order:stroke;stroke-linejoin:round;opacity:0}
-.lvov.go .lvlab{animation:lvshow .4s ease 1.2s forwards}
-@keyframes lvdraw{to{stroke-dashoffset:0}}
-@keyframes lvshow{to{opacity:1}}
-@media (prefers-reduced-motion:reduce){.lvov.go .lvring,.lvov.go .lvarr{animation-duration:.01s}}
-
 .lv3.full{border-radius:4px;background:radial-gradient(ellipse at 50% 45%,#ffffff 0%,#f3f8f5 60%,#e6f1eb 100%);box-shadow:inset 0 0 0 1px rgba(0,102,74,.12)}
 .lv3.full.k-protein,.lv3.full.k-dna,.lv3.full.k-membrane{background:radial-gradient(ellipse at 50% 45%,#ffffff 0%,#eef5f9 62%,#dfeaf1 100%)}
 .lv3.full.k-atom,.lv3.full.k-orbital{background:radial-gradient(ellipse at 50% 50%,#ffffff 0%,#f4f6fb 65%,#e7ebf4 100%)}
 .lv3.full .lv3l{bottom:10px;font-size:17px}
-#shw.live .sld .sldb{position:relative}
-.lvmeasure li::before{display:none!important}
+/* the accent layer: one layer for the whole session, moved from slide to slide; its animations share one clock (--lvt) so they never
+   restart, and its pieces glide (transform, opacity) to their place on each slide */
+#shw .lvacc{position:absolute;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+#shw .lvacc *{animation-delay:var(--lvt,0s)!important}
+#shw .lvacc .lva{position:absolute}
+#shw .lvacc .lvpc{position:absolute;left:0;top:0;transform-origin:50% 50%;transition:transform 1s cubic-bezier(.45,0,.2,1),opacity .8s ease;will-change:transform}
+#shw .lvacc svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke:#00664a;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;transition:stroke .9s ease}
+#shw .lvacc .lvn{fill:#c9a227;stroke:none;transition:fill .9s ease}
+#shw .lvacc.lvnt .lvpc,#shw .lvacc.lvnt svg,#shw .lvacc.lvnt .lvn,#shw .lvacc.lvnt .lvnuc,#shw .lvacc.lvnt .lvft{transition:none!important}
+#shw .lvacc .lvspin{position:absolute;inset:0;animation:lvspin 70s linear infinite;will-change:transform}
+#shw .lvacc .lvp{position:absolute;animation:lvp 7s linear infinite;will-change:transform}
+#shw .lvacc .lvp::after,#shw .lvacc .lve::after,#shw .lvacc .lvq::after{content:"";position:absolute;left:50%;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:radial-gradient(circle,#fff 0,#4fe0a6 38%,rgba(47,158,110,.0) 72%)}
+#shw .lvacc .lvorb{position:absolute}
+#shw .lvacc .lvorb svg{stroke:#2f9e6e;stroke-width:1.8;stroke-dasharray:6 7;opacity:.75}
+#shw .lvacc .lve{position:absolute;inset:0;animation:lve 9s linear infinite;will-change:transform}
+#shw .lvacc .lve::after{width:11px;height:11px;margin:-5.5px 0 0 -5.5px;background:radial-gradient(circle,#fff 0,#c9a227 45%,rgba(201,162,39,0) 75%)}
+#shw .lvacc .lvft{left:300px;right:110px;bottom:8px;height:26px;opacity:.55;transition:opacity .8s}
+#shw .lvacc .lvft svg{stroke-width:2;vector-effect:non-scaling-stroke}
+#shw .lvacc .lvft svg *{vector-effect:non-scaling-stroke}
+#shw .lvacc .lvq{position:absolute;inset:0;animation:lvq 16s linear infinite;will-change:transform}
+#shw .lvacc .lvq2{animation-delay:calc(var(--lvt,0s) - 8s)!important}
+#shw .lvacc .lvq::after{left:0;top:0}
+#shw .lvacc .lvpc[data-p="a"] .lvspin{animation-duration:110s}
+#shw .lvacc .lvpc[data-p="b"] .lvspin{animation-duration:85s;animation-direction:reverse}
+#shw .lvacc .lvp.d2{animation-duration:12s;animation-direction:reverse}#shw .lvacc .lvp.d3{animation-duration:8s}
+#shw .lvacc .lvat>.lvorb{left:0;top:66px}
+#shw .lvacc .lvat>.lvo3{transform:rotate(60deg)}#shw .lvacc .lvat>.lvo4{transform:rotate(-60deg)}
+#shw .lvacc .lvnuc{position:absolute;left:93px;top:93px;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff 0,#e9cf6a 45%,#c9a227 100%);animation:lvpulse 3.2s ease-in-out infinite}
+/* section and chapter title slides (full green): the same pieces, larger, in light lines */
+#shw .lvacc.dv svg{stroke:#bfe9d6;stroke-width:2.4}
+#shw .lvacc.dv .lvn{fill:#e9cf6a}
+#shw .lvacc.dv .lvorb svg{stroke:#d9efe5}
+#shw .lvacc.dv .lvp::after{width:16px;height:16px;margin:-8px 0 0 -8px;background:radial-gradient(circle,#fff 0,#ffe58a 40%,rgba(255,229,138,0) 72%)}
+#shw .lvacc.dv .lvft svg{stroke:#ffffff}
+#shw .lvacc.dv .lvft{opacity:.4}
+/* between slides: the slide left behind eases out in the direction of travel above the new one, which eases in from the other side */
+#shw .shwslide>.sld.lvghost{position:absolute!important;left:0;top:0;z-index:2;pointer-events:none;animation:lvgf .32s cubic-bezier(.2,.6,.3,1) forwards!important}
+#shw .shwslide>.sld.lvghost .sldft,#shw .shwslide>.sld.lvghost .sldn{visibility:hidden}
+#shw .shwslide>.sld.lvghost.lvgb{animation-name:lvgb!important}
+#shw .sld.lvghost *,#shw .sld.lvghost *::before,#shw .sld.lvghost *::after{animation:none!important;transition:none!important}
+@keyframes lvgf{to{opacity:0;transform:translateX(-60px)}}
+@keyframes lvgb{to{opacity:0;transform:translateX(60px)}}
+#shw.live .sld.lvfw .sldb,#shw.live .sld.lvfw>.sldivin{animation:lvsif .42s cubic-bezier(.2,.7,.2,1) .06s backwards}
+#shw.live .sld.lvbk .sldb,#shw.live .sld.lvbk>.sldivin{animation:lvsib .42s cubic-bezier(.2,.7,.2,1) .06s backwards}
+@keyframes lvsif{from{opacity:.35;transform:translateX(56px)}}
+@keyframes lvsib{from{opacity:.35;transform:translateX(-56px)}}
+#shw .sld.lvmeasure .sldb{transform:none!important}
+/* stages: side cards float like a glass hologram over free space; a carried-over model flies to its new place */
+.lv3.out{opacity:0!important;transition:opacity .7s ease,transform .7s ease}
+.lv3.fly{transition:transform .65s cubic-bezier(.3,.7,.2,1),opacity .9s ease}
+.lv3.side{border-radius:14px;overflow:hidden;background:linear-gradient(160deg,rgba(255,255,255,.95),rgba(228,245,237,.9) 60%,rgba(214,238,228,.9));box-shadow:0 0 0 1.5px rgba(47,158,110,.55),0 0 22px rgba(62,230,162,.35),0 18px 32px -14px rgba(0,58,40,.45);transform:scale(.94);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+.lv3.side.in{transform:none}
+.lv3.side.out{transform:scale(.94)}
+.lv3.side::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,0) 35%,rgba(255,255,255,.55) 50%,rgba(255,255,255,0) 65%);transform:translateX(-120%);animation:lvholo 6s ease-in-out 1s infinite}
+@keyframes lvholo{0%,60%{transform:translateX(-120%)}85%,100%{transform:translateX(120%)}}
+.lv3.side .lv3l{font-size:13px;bottom:6px;padding:2px 10px}
+.lv3 .lv3g{position:absolute;left:10px;right:10px;top:10px;bottom:38px;display:flex;align-items:center;justify-content:center}
+.lv3.side .lv3g{left:8px;right:8px;top:8px;bottom:28px}
+html body #shw .lv3 .lv3g>svg,html body #shw .lv3 .lv3g>img{flex:1 1 auto!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;min-height:0!important;object-fit:contain!important;border:0!important;padding:0!important;margin:0!important;background:none!important;box-shadow:none!important}
+.lv3 .lv3l.swap{animation:lvlab .8s ease}
+@keyframes lvlab{0%{opacity:0;transform:translate(-50%,6px)}100%{opacity:1;transform:translate(-50%,0)}}
+@keyframes lvspin{to{transform:rotate(360deg)}}
+@keyframes lvpulse{50%{transform:scale(1.25);opacity:.8}}
+@keyframes lve{0.00%{transform:translate(50.00%,0.00%)}6.25%{transform:translate(46.19%,19.13%)}12.50%{transform:translate(35.36%,35.36%)}18.75%{transform:translate(19.13%,46.19%)}25.00%{transform:translate(0.00%,50.00%)}31.25%{transform:translate(-19.13%,46.19%)}37.50%{transform:translate(-35.36%,35.36%)}43.75%{transform:translate(-46.19%,19.13%)}50.00%{transform:translate(-50.00%,0.00%)}56.25%{transform:translate(-46.19%,-19.13%)}62.50%{transform:translate(-35.36%,-35.36%)}68.75%{transform:translate(-19.13%,-46.19%)}75.00%{transform:translate(-0.00%,-50.00%)}81.25%{transform:translate(19.13%,-46.19%)}87.50%{transform:translate(35.36%,-35.36%)}93.75%{transform:translate(46.19%,-19.13%)}100.00%{transform:translate(50.00%,-0.00%)}}
+@keyframes lvp{0.00%{transform:translate(0%,-50%)}16.67%{transform:translate(50%,-25%)}33.33%{transform:translate(50%,25%)}50.00%{transform:translate(0%,50%)}66.67%{transform:translate(-50%,25%)}83.33%{transform:translate(-50%,-25%)}100.00%{transform:translate(0%,-50%)}}
+@keyframes lvq{0.000%{transform:translate(0.000%,25%)}4.167%{transform:translate(4.167%,75%)}8.333%{transform:translate(8.333%,25%)}12.500%{transform:translate(12.500%,75%)}16.667%{transform:translate(16.667%,25%)}20.833%{transform:translate(20.833%,75%)}25.000%{transform:translate(25.000%,25%)}29.167%{transform:translate(29.167%,75%)}33.333%{transform:translate(33.333%,25%)}37.500%{transform:translate(37.500%,75%)}41.667%{transform:translate(41.667%,25%)}45.833%{transform:translate(45.833%,75%)}50.000%{transform:translate(50.000%,25%)}54.167%{transform:translate(54.167%,75%)}58.333%{transform:translate(58.333%,25%)}62.500%{transform:translate(62.500%,75%)}66.667%{transform:translate(66.667%,25%)}70.833%{transform:translate(70.833%,75%)}75.000%{transform:translate(75.000%,25%)}79.167%{transform:translate(79.167%,75%)}83.333%{transform:translate(83.333%,25%)}87.500%{transform:translate(87.500%,75%)}91.667%{transform:translate(91.667%,25%)}95.833%{transform:translate(95.833%,75%)}100.000%{transform:translate(100.000%,25%)}}
+/* reduced motion: everything rests; shapes stay, still */
+@media (prefers-reduced-motion:reduce){#shw .sld .sldf,#shw .sld.lvin *,#shw .sld.lvin,#shw .lvacc *,#shw .sld .sldh::before,#shw .sld .sldh::after,#shw .sld .sldf::after{animation:none!important;transition:none!important}#shw .lvacc .lvp,#shw .lvacc .lve,#shw .lvacc .lvq{display:none}}
 
 html body #shw .shwbar.lvpl{height:auto}html body #shw .shwbar.lvpl .shwctl{top:0;bottom:auto}
 
@@ -1362,109 +1461,276 @@ function lvScript(u){return new Promise(function(ok,no){var s=document.createEle
 function lvLib(){if(!LV.lib)LV.lib=(window.THREE?Promise.resolve():lvScript("https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js")).then(function(){return window.LV3D?0:lvScript(LV.B+"lv3d.js?v=3")});LV.lib.catch(function(){LV.lib=null});return LV.lib}
 function lvModel(e){var f=e.f;if(!LV.data[f])LV.data[f]=fetch(LV.B+"live/"+f+".json?v=1").then(function(r){if(!r.ok)throw 0;return r.json()}).catch(function(x){delete LV.data[f];throw x});return LV.data[f].then(function(d){return d[S.tid]})}
 function lvItems(){var st=document.querySelector("#shw .shwslide .sld");return st?[].slice.call(st.querySelectorAll(".sldb > ul > li,.sldb > ol > li")):[]}
-function lvKill(){var c=LV.cur;LV.cur=null;if(c){try{c.b&&c.b.dispose()}catch(x){}if(c.box&&c.box.parentNode)c.box.parentNode.removeChild(c.box)}}
-/* one step: bullets up to st shown, st highlighted; the picture drifts a little more; the 3D model appears at its bullet */
+/* one step: bullets up to st shown, st highlighted; the card settles into a new angle; the 3D model appears at its bullet */
 function lvStep(first){var shw=document.getElementById("shw");if(!shw||!SHOW)return;var li=lvItems(),st=SHOW.st||0;
  li.forEach(function(x,i){x.classList.toggle("lvf",LV.bul&&i>st);x.classList.toggle("lvc",LV.bul&&i===st&&!(first&&li.length<2));x.classList.toggle("lvd",LV.bul&&i<st)});
+ lvCard();
+ /* stages first (a cover stage that ends gives the highlight back), then the figure highlight */
+ var k0=SHOW.k;if(LV.fig)lvData().then(function(d){if(!SHOW||SHOW.k!==k0)return;var x=SHOW.list[SHOW.k],key=x&&S.tid+"|"+lvTxt(x.title),L=x?lvList(d,key):[],st2=SHOW.st||0,i=lvPick(L,st2);
+  if(i>=0)lvEnter(L[i],i,key);else if(LV.cur)lv3Off();if(LV.keep){lvDrop(LV.keep.c,true);LV.keep=null}if(LV.cur&&!LV.cur.dead&&i>=0)LV.cur.goal=Math.max(0,st2-(L[i].at||0))}).catch(function(){if(LV.keep){lvDrop(LV.keep.c,true);LV.keep=null}});
  if(LV.fig)lvFig(st,first);
- var k0=SHOW.k;if(LV.fig)lvData().then(function(d){if(!SHOW||SHOW.k!==k0)return;var x=SHOW.list[SHOW.k],e=d&&d.m&&x&&d.m[S.tid+"|"+lvTxt(x.title)],st2=SHOW.st||0;if(!e)return;if(st2>=e.at&&(e.to==null||st2<=e.to))lv3On(e);else if(LV.cur)lv3Off();if(LV.cur&&LV.cur.on)LV.cur.goal=Math.max(0,st2-e.at)}).catch(function(){});
  var nv=shw.querySelector(".shwnav"),L=SHOW.list.length;if(nv){var p=nv.querySelector('[data-sv="-1"]'),n=nv.querySelector('[data-sv="1"]');if(p)p.disabled=SHOW.k===0&&st===0;if(n)n.disabled=SHOW.k===L-1&&st>=li.length-1}}
-/* ---------- figure highlights (Nov 26 2026): each bullet zooms toward the part of the figure it is about, outlines it, dims the
-   rest and points at it with an arrow; the data (live/<chapter>.json "ann") lists one box per bullet ---------- */
-function lvChap(){var t=typeof topicById==="function"?topicById(S.tid):null;if(!t)return null;var c=t._ch||(typeof ALLCH!=="undefined"?ALLCH.filter(function(x){return x.topics.indexOf(t)>=0})[0]:null);return c?c.id:null}
-function lvData(){var f=lvChap();if(!f)return Promise.reject(0);if(!LV.data[f])LV.data[f]=fetch(LV.B+"live/"+f+".json?v=5").then(function(r){if(!r.ok)throw 0;return r.json()}).catch(function(x){delete LV.data[f];throw x});return LV.data[f]}
+/* ---------- figure highlights (Nov 26 2026, revised Nov 27): each bullet eases the picture toward the part it is about (modest zoom)
+   and draws a crisp glowing outline around it; several parts of one bullet are visited one after the other. The picture itself is
+   never dimmed, veiled or filtered. Data: live/<chapter>.json "ann", one entry per bullet ---------- */
+function lvChap(t){t=t||(typeof topicById==="function"?topicById(S.tid):null);if(!t)return null;var c=t._ch||(typeof ALLCH!=="undefined"?ALLCH.filter(function(x){return x.topics.indexOf(t)>=0})[0]:null);return c?c.id:null}
+function lvData(){var f=lvChap();if(!f)return Promise.reject(0);if(!LV.data[f])LV.data[f]=fetch(LV.B+"live/"+f+".json?v=6").then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){(LV.dd=LV.dd||{})[f]=j;return j}).catch(function(x){delete LV.data[f];throw x});return LV.data[f]}
 function lvAnn(d){var x=SHOW&&SHOW.list[SHOW.k];if(!x||!d||!d.ann)return null;return d.ann[S.tid+"|"+lvTxt(x.title)]||null}
 function lvFig(st,first){var shw=document.getElementById("shw"),f=shw&&shw.querySelector(".shwslide .sldf"),el=f&&f.querySelector(":scope > img,:scope > svg");if(!el)return;
- var k=SHOW.k;lvData().then(function(d){if(!SHOW||SHOW.k!==k||!el.isConnected)return;var a=lvAnn(d),x=SHOW.list[SHOW.k],e=d.m&&d.m[S.tid+"|"+lvTxt(x.title)];lvMark(f,el,a?a[Math.min(st,a.length-1)]:null,first,!!a)}).catch(function(){if(el.isConnected)lvMark(f,el,null,first,false)})}
-function lvGeo(el){/* the element's box inside its parent, unscaled and without the live zoom; measured once (an svg has no offsetWidth) */
- if(el._lvg)return el._lvg;var p=el.parentNode,t=el.style.transform,c=el.style.clipPath,tr=el.style.transition;
- if(t&&t!=="none"){el.style.transition="none";el.style.transform="none";el.style.clipPath="none"}
+ var k=SHOW.k;lvData().then(function(d){if(!SHOW||SHOW.k!==k||!el.isConnected)return;var a=lvAnn(d);lvMark(f,el,a?a[Math.min(st,a.length-1)]:null,first,!!a)}).catch(function(){if(el.isConnected&&SHOW&&SHOW.k===k)lvMark(f,el,null,first,false)})}
+function lvGeo(el){/* the element's box inside its parent, unscaled and without the live zoom or the card tilt; measured once (an svg has no offsetWidth) */
+ if(el._lvg)return el._lvg;var p=el.parentNode,sl=el.closest?el.closest(".sld"):null,t=el.style.transform,c=el.style.clipPath,tr=el.style.transition,had=sl&&sl.classList.contains("lvmeasure");
+ if(sl&&!had)sl.classList.add("lvmeasure");if(t&&t!=="none"){el.style.transition="none";el.style.transform="none";el.style.clipPath="none"}
  var r=el.getBoundingClientRect(),q=p.getBoundingClientRect(),k=q.width/(p.offsetWidth||1)||1,g={l:(r.left-q.left)/k-p.clientLeft,t:(r.top-q.top)/k-p.clientTop,W:r.width/k,H:r.height/k};
- if(t&&t!=="none"){el.style.transform=t;el.style.clipPath=c;el.getBoundingClientRect();el.style.transition=tr}
- if(g.W>4&&g.H>4&&(el.tagName!=="IMG"||el.complete))el._lvg=g;return g}
+ if(t&&t!=="none"){el.style.transform=t;el.style.clipPath=c;el.getBoundingClientRect();el.style.transition=tr}if(sl&&!had)sl.classList.remove("lvmeasure");
+ if(g.W>4&&g.H>4&&(el.tagName!=="IMG"||(el.complete&&el.naturalWidth>1)))el._lvg=g;return g}
 function lvBox(el){/* the drawn picture inside the element (borders, padding and letterboxing removed), in the element's own pixels */
  var cs=getComputedStyle(el),bl=parseFloat(cs.borderLeftWidth)+parseFloat(cs.paddingLeft),bt=parseFloat(cs.borderTopWidth)+parseFloat(cs.paddingTop),
   G=lvGeo(el),W=G.W,H=G.H,iw=W-bl-parseFloat(cs.borderRightWidth)-parseFloat(cs.paddingRight),ih=H-bt-parseFloat(cs.borderBottomWidth)-parseFloat(cs.paddingBottom),ar=0;
- if(el.tagName==="IMG")ar=el.naturalWidth/el.naturalHeight;else{try{var vb=el.viewBox.baseVal;if(vb&&vb.width)ar=vb.width/vb.height}catch(x){}}
+ if(el.tagName==="IMG")ar=el.naturalWidth>1?el.naturalWidth/el.naturalHeight:0;else{try{var vb=el.viewBox.baseVal;if(vb&&vb.width)ar=vb.width/vb.height}catch(x){}}
  var cw=iw,ch=ih;if(ar){if(iw/ih>ar)cw=ih*ar;else ch=iw/ar}return {W:W,H:H,l:G.l,t:G.t,x:bl+(iw-cw)/2,y:bt+(ih-ch)/2,w:cw,h:ch,il:bl,it:bt,iw:iw,ih:ih}}
-function lvMark(f,el,e,first,has){var B=lvBox(el);if(!B.w||!B.h)return;clearTimeout(LV.seqT);if(LV.cur&&LV.cur.on&&LV.cur.k===SHOW.k&&LV.cur.box.isConnected){e=null;has=true}
+function lvMark(f,el,e,first,has){if(el.tagName==="IMG"&&lvWaiting(el))return;var B=lvBox(el);if(!B.w||!B.h)return;clearTimeout(LV.seqT);if(LV.cur&&!LV.cur.dead&&!LV.cur.side&&LV.cur.k===SHOW.k&&LV.cur.box.isConnected){e=null;has=true}
  var ov=f.querySelector(".lvov");if(!ov){ov=document.createElementNS("http://www.w3.org/2000/svg","svg");ov.setAttribute("class","lvov");f.appendChild(ov)}
  ["left",B.l,"top",B.t,"width",B.W,"height",B.H,"max-width",B.W,"max-height",B.H,"min-height",0].forEach(function(v,i,A){if(i%2===0)ov.style.setProperty(v,A[i+1]+"px","important")});ov.setAttribute("viewBox","0 0 "+B.W+" "+B.H);
+ var SP=LV.cur&&!LV.cur.dead&&LV.cur.split&&LV.cur.k===SHOW.k?LV.cur.split:null;if(SP&&e&&e.z)e=Object.assign({},e,{z:0});
  var T=e&&(e.seq||(e.b?[{b:e.b,s:e.s}]:null))||[],k0=SHOW.k;
  function px(fx,fy){return [B.x+fx*B.w,B.y+fy*B.h]}
  function draw(n,instant){if(!SHOW||SHOW.k!==k0||!el.isConnected)return;var t=T[n],s=1,tx=0,ty=0,rx=0,ry=0,html="";
   if(t&&t.b){var bx=B.x+t.b[0]*B.w,by=B.y+t.b[1]*B.h,bw=t.b[2]*B.w,bh=t.b[3]*B.h,ccx=bx+bw/2,ccy=by+bh/2;
-   if(e.z&&!LV.rm){s=Math.max(1,Math.min(1.9,Math.min(B.W*.62/bw,B.H*.62/bh)));tx=B.W/2-s*ccx;ty=B.H/2-s*ccy;tx=Math.min(0,Math.max(B.W-s*B.W,tx));ty=Math.min(0,Math.max(B.H-s*B.H,ty))}
-   if(!LV.rm){ry=(ccx/B.W-.5)*7;rx=-(ccy/B.H-.5)*5}
-   var p=6/s,vxa=-tx/s+2/s,vya=-ty/s+2/s,vxb=vxa+B.W/s-4/s,vyb=vya+B.H/s-4/s,X=Math.max(vxa,bx-p),Y=Math.max(vya,by-p),Wd=Math.min(vxb,bx+bw+p)-X,Hd=Math.min(vyb,by+bh+p)-Y,r=Math.min(12/s,Wd/4,Hd/4),sw=3.5/s;
+   /* the camera: ease toward the part (modest zoom, kept inside the frame) */
+   if(e.z&&!LV.rm){s=Math.max(1,Math.min(1.65,Math.min(B.W*.66/bw,B.H*.66/bh)));tx=B.W/2-s*ccx;ty=B.H/2-s*ccy;tx=Math.min(0,Math.max(B.W-s*B.W,tx));ty=Math.min(0,Math.max(B.H-s*B.H,ty))}
+   else if(!LV.rm){s=1.04;tx=(B.W/2-ccx)*.08-(s-1)*B.W/2;ty=(B.H/2-ccy)*.08-(s-1)*B.H/2;tx=Math.min(0,Math.max(B.W-s*B.W,tx));ty=Math.min(0,Math.max(B.H-s*B.H,ty))}
+   if(!LV.rm){ry=(ccx/B.W-.5)*5;rx=-(ccy/B.H-.5)*4}
+   var p=6/s,vxa=-tx/s+3/s,vya=-ty/s+3/s,vxb=vxa+B.W/s-6/s,vyb=vya+B.H/s-6/s,X=Math.max(vxa,bx-p),Y=Math.max(vya,by-p),Wd=Math.min(vxb,bx+bw+p)-X,Hd=Math.min(vyb,by+bh+p)-Y,r=Math.min(12/s,Wd/4,Hd/4);
    var shape=t.s==="e"?'<ellipse cx="'+(X+Wd/2)+'" cy="'+(Y+Hd/2)+'" rx="'+(Wd/2+4/s)+'" ry="'+(Hd/2+4/s)+'"':'<rect x="'+X+'" y="'+Y+'" width="'+Wd+'" height="'+Hd+'" rx="'+r+'"';
-   var hole=t.s==="e"?lvEll(X+Wd/2,Y+Hd/2,Wd/2+4/s,Hd/2+4/s):"M"+X+" "+Y+"h"+Wd+"v"+Hd+"h"+(-Wd)+"z";
-   html+='<path class="lvdim" fill-rule="evenodd" d="M0 0H'+B.W+'V'+B.H+'H0Z '+hole+'"/>'+shape+' class="lvring" pathLength="1" style="stroke-width:'+sw+'px"/>';
+   /* a soft glow under a crisp line, drawn in around the part; nothing covers the rest of the picture */
+   html+=shape+' class="lvglow" pathLength="1" style="stroke-width:'+(11/s)+'px"/>'+shape+' class="lvring" pathLength="1" style="stroke-width:'+(3.4/s)+'px"/>';
    /* an arrow only where the data says something moves from one place to another */
    if(e.ar&&n===T.length-1){var P=px(e.ar[0],e.ar[1]),Q=px(e.ar[2],e.ar[3]),dx=Q[0]-P[0],dy=Q[1]-P[1],Ln=Math.sqrt(dx*dx+dy*dy)||1,qx=(P[0]+Q[0])/2-dy*.18,qy=(P[1]+Q[1])/2+dx*.18,ang=Math.atan2(Q[1]-qy,Q[0]-qx),hl=Math.min(14/s,Ln*.3),hw=hl*.55;
     html+='<path class="lvarr" pathLength="1" style="stroke-width:'+(3.2/s)+'px" d="M'+P[0]+' '+P[1]+'Q'+qx+' '+qy+' '+Q[0]+' '+Q[1]+'"/><path class="lvhead" d="M'+Q[0]+' '+Q[1]+'L'+(Q[0]-hl*Math.cos(ang)+hw*Math.sin(ang))+' '+(Q[1]-hl*Math.sin(ang)-hw*Math.cos(ang))+'L'+(Q[0]-hl*Math.cos(ang)-hw*Math.sin(ang))+' '+(Q[1]-hl*Math.sin(ang)+hw*Math.cos(ang))+'Z"/>'}}
-  else if(!has&&!LV.rm&&SHOW){/* no highlight data: a slow gentle drift */var st=SHOW.st||0;s=1+Math.min(st,6)*.03;tx=-(s-1)*B.W*[.5,.3,.7,.4,.6,.5,.45][st%7];ty=-(s-1)*B.H*[.5,.4,.6,.7,.3,.5,.55][st%7]}
+  else if(!has&&!LV.rm&&SHOW){/* no highlight data: a slow gentle camera drift from bullet to bullet */var st=SHOW.st||0;s=1+Math.min(st,6)*.025;tx=-(s-1)*B.W*[.5,.3,.7,.4,.6,.5,.45][st%7];ty=-(s-1)*B.H*[.5,.4,.6,.7,.3,.5,.55][st%7]}
+  if(SP){s=SP.s;tx=SP.tx;ty=SP.ty;rx=0;ry=0}
   var cx=B.W/2,cy=B.H/2,Ts="translate("+cx+"px,"+cy+"px) perspective(1600px) rotateX("+rx.toFixed(2)+"deg) rotateY("+ry.toFixed(2)+"deg) translate("+(-cx)+"px,"+(-cy)+"px) translate("+tx+"px,"+ty+"px) scale("+s+")",
-   cl="inset("+(-ty/s)+"px "+(B.W-(B.W-tx)/s)+"px "+(B.H-(B.H-ty)/s)+"px "+(-tx/s)+"px)";
+   cl=SP?"none":"inset("+(-ty/s)+"px "+(B.W-(B.W-tx)/s)+"px "+(B.H-(B.H-ty)/s)+"px "+(-tx/s)+"px)";
   el.style.transformOrigin="0 0";ov.style.transformOrigin="0 0";el.classList.add("lvzf");
   if(instant){el.style.transition="none";ov.style.transition="none"}el.style.transform=Ts;el.style.clipPath=cl;ov.style.transform=Ts;ov.style.clipPath=cl;
   if(instant){el.getBoundingClientRect();el.style.transition="";ov.style.transition=""}
   ov.innerHTML=html;ov.classList.remove("go");void ov.getBoundingClientRect();ov.classList.add("go")}
- draw(0,first);if(T.length>1)LV.seqT=setTimeout(function(){draw(1)},2100)}
-function lvSpot(f,el){/* the largest empty place for the 3D card: under the bullets, or blank space beside the drawing inside the figure */
- var shw=document.getElementById("shw"),b=shw.querySelector(".shwslide .sldb"),ul=b&&b.querySelector(":scope > ul,:scope > ol"),C=[];
- if(ul&&ul.children.length){var la=ul.children[ul.children.length-1],t=la.offsetTop+la.offsetHeight+10;C.push({host:b,x:ul.offsetLeft,y:t,w:ul.offsetWidth,h:b.clientHeight-t-6})}
- if(el){var B=lvBox(el),ox=B.l,oy=B.t,m=8;
-  C.push({host:f,inFig:1,x:ox+B.il+m,y:oy+B.it+m,w:B.x-B.il-2*m,h:B.ih-2*m},{host:f,inFig:1,x:ox+B.x+B.w+m,y:oy+B.it+m,w:B.il+B.iw-B.x-B.w-2*m,h:B.ih-2*m},
-   {host:f,inFig:1,x:ox+B.il+m,y:oy+B.it+m,w:B.iw-2*m,h:B.y-B.it-2*m},{host:f,inFig:1,x:ox+B.il+m,y:oy+B.y+B.h+m,w:B.iw-2*m,h:B.it+B.ih-B.y-B.h-2*m})}
- C=C.filter(function(r){return r.w>=140&&r.h>=130}).sort(function(p,q){return Math.min(q.w,q.h*1.5)*q.h-Math.min(p.w,p.h*1.5)*p.h});
- var r=C[0];if(!r)return null;var H=Math.min(r.h,250),W=Math.min(r.w,Math.round(H*1.6));return {host:r.host,inFig:!!r.inFig,x:r.x+(r.w-W)/2,y:r.y+(r.h-H)/2,w:W,h:H}}
+ draw(0,first);if(T.length>1)LV.seqT=setTimeout(function(){draw(1)},2300)}
 function lvEll(cx,cy,rx,ry){return "M"+(cx-rx)+" "+cy+"a"+rx+" "+ry+" 0 1 0 "+(2*rx)+" 0a"+rx+" "+ry+" 0 1 0 "+(-2*rx)+" 0z"}
-function lv3Off(){var c=LV.cur;if(!c)return;c.on=false;c.box.classList.remove("in")}
-function lv3On(e){/* the turning model fills the figure area on its own background, from its bullet on */
+/* ---------- figure stages (Nov 27 2026, phase 2). A slide's "m" value is ONE entry or a LIST of entries (live/MULTI_SPEC.md). An entry
+   shows, from bullet "at" (to "to", or until a later entry starts), a 3D model ("mo"), an inline drawing ("svg") or a picture of the
+   chapter bundle ("img"), either over the figure area ("cover") or as a floating card in free space ("side"). A stage appears only
+   once it is really drawn; the stage before it eases out at that moment (two models in the same place morph inside one scene). Any
+   failure (Three.js, lv3d.js, WebGL, data, picture, 2.5 s timeout, lost context): that entry is dropped and the slide keeps its figure. ---------- */
+function lvList(d,key){var v=d&&d.m&&d.m[key];if(!v)return [];return (Array.isArray(v)?v:[v]).filter(function(e){return e&&(e.mo||e.svg||e.img)})}
+function lvPick(L,st){var b=-1;L.forEach(function(e,i){var a=e.at||0;if(st>=a&&(e.to==null||st<=e.to)&&(b<0||a>=(L[b].at||0)))b=i});return b}
+function lvKindOf(e){return e.mo?"3d":e.svg?"svg":"img"}
+function lvKill(){var c=LV.cur;LV.cur=null;lvDrop(c,true);(LV.outs||[]).forEach(function(o){lvDrop(o,true)});LV.outs=[];if(LV.keep){lvDrop(LV.keep.c,true);LV.keep=null}}
+function lvDrop(c,now){if(!c||c.dead)return;c.dead=true;clearTimeout(c.tmo);if(c.prev){lvDrop(c.prev,now);c.prev=null}
+ function fin(){if(c.raf)cancelAnimationFrame(c.raf);c.raf=0;try{c.b&&c.b.dispose()}catch(x){}(c.olds||[]).forEach(function(o){try{o.b.dispose()}catch(x){}});
+  if(c.ren){c.ren.mine=1;try{c.ren.dispose();c.ren.forceContextLoss()}catch(x){}}if(c.box&&c.box.parentNode)c.box.parentNode.removeChild(c.box);LV.outs=(LV.outs||[]).filter(function(o){return o!==c})}
+ if(now||!c.shown||LV.rm){fin();return}c.box.classList.remove("in");c.box.classList.add("out");LV.outs=(LV.outs||[]).concat([c]);setTimeout(fin,720)}
+function lv3Off(){var c=LV.cur;LV.cur=null;lvDrop(c,false)}
+function lv3Fail(c){if(LV.cur!==c)return;LV.cur=null;(LV.skip=LV.skip||{})[c.id]=1;var p=c.prev;c.prev=null;lvDrop(c,true);lvDrop(p,false);if(SHOW&&LV.fig)lvFig(SHOW.st||0,false)}
+function lvShown(c){if(c.dead||c.shown)return;c.shown=true;clearTimeout(c.tmo);c.box.classList.add("in");var p=c.prev;c.prev=null;lvDrop(p,false)}
+function lvSpot(f,el){/* the largest empty place for a side card: under the bullets, or blank space beside the drawing inside the frame */
+ var shw=document.getElementById("shw"),b=shw.querySelector(".shwslide .sldb"),ul=b&&b.querySelector(":scope > ul,:scope > ol"),C=[];
+ if(ul&&ul.children.length&&b.classList.contains("two")){var la=ul.children[ul.children.length-1],t=ul.offsetTop+la.offsetTop+la.offsetHeight+12;if(la.offsetParent===b)t=la.offsetTop+la.offsetHeight+12;C.push({host:b,x:ul.offsetLeft,y:t,w:ul.offsetWidth,h:b.clientHeight-t-4})}
+ if(el){var B=lvBox(el),ox=B.l,oy=B.t,m=8;
+  C.push({host:f,x:ox+B.il+m,y:oy+B.it+m,w:B.x-B.il-2*m,h:B.ih-2*m},{host:f,x:ox+B.x+B.w+m,y:oy+B.it+m,w:B.il+B.iw-B.x-B.w-2*m,h:B.ih-2*m},
+   {host:f,x:ox+B.il+m,y:oy+B.it+m,w:B.iw-2*m,h:B.y-B.it-2*m},{host:f,x:ox+B.il+m,y:oy+B.y+B.h+m,w:B.iw-2*m,h:B.it+B.ih-B.y-B.h-2*m})}
+ C=C.filter(function(r){return r.w>=130&&r.h>=115}).sort(function(p,q){return Math.min(q.w,q.h*1.5)*q.h-Math.min(p.w,p.h*1.5)*p.h});
+ var r=C[0];if(!r)return null;var H=Math.min(r.h,250),W=Math.min(r.w,Math.round(H*1.6));H=Math.min(H,Math.round(W*1.1));return {host:r.host,side:1,x:r.x+(r.w-W)/2,y:r.y+(r.h-H)/2,w:W,h:H}}
+function lvPlace(f,el,mode){if(mode==="side"){var s=lvSpot(f,el);if(s)return s;s=lvSplit(f,el);if(s)return s}var B=lvBox(el);if(B.W<8||B.H<8)return null;return {host:f,side:0,x:B.l,y:B.t,w:B.W,h:B.H}}
+function lvSplit(f,el){/* no free space: the picture eases aside (smaller, still whole) and the card takes the room it leaves */
+ var B=lvBox(el);if(B.W<200||B.H<150)return null;var g=14,R;
+ if(B.W>=B.H*1.05){var w=Math.round(Math.min(B.W*.4,320)),h=Math.round(Math.min(B.H*.82,w*1.15)),s=Math.min((B.W-w-g*2)/B.W,1);R={x:B.l+B.W-w-g/2,y:B.t+(B.H-h)/2,w:w,h:h,sp:{s:s,tx:g/2,ty:(B.H-s*B.H)/2}}}
+ else{var h2=Math.round(Math.min(B.H*.4,260)),w2=Math.round(Math.min(B.W*.86,h2*1.6)),s2=Math.min((B.H-h2-g*2)/B.H,1);R={x:B.l+(B.W-w2)/2,y:B.t+B.H-h2-g/2,w:w2,h:h2,sp:{s:s2,tx:(B.W-s2*B.W)/2,ty:g/2}}}
+ R.host=f;R.side=1;return R}
+function lvPut(c,R){c.split=R.sp||null;var box=c.box;box.className="lv3 "+(R.side?"side":"full")+" k-"+(c.e.mo&&c.e.mo.kind||c.kind)+(c.shown?" in":"");
+ box.style.left=R.x+"px";box.style.top=R.y+"px";box.style.width=Math.round(R.w)+"px";box.style.height=Math.round(R.h)+"px";if(box.parentNode!==R.host)R.host.appendChild(box);c.side=!!R.side;c.W=Math.round(R.w);c.H=Math.round(R.h)}
+function lvCoverReset(f,el){clearTimeout(LV.seqT);el.style.transform="translate(0px,0px) scale(1)";el.style.clipPath="inset(0px)";var ov=f.querySelector(".lvov");if(ov)ov.innerHTML=""}
+function lvEnter(e,i,key){var id=key+"#"+i;if(LV.skip&&LV.skip[id]){if(LV.cur)lv3Off();return}var c=LV.cur;if(c&&c.id===id&&!c.dead)return;
  var shw=document.getElementById("shw"),f=shw&&shw.querySelector(".shwslide .sldf"),el=f&&f.querySelector(":scope > img,:scope > svg");if(!el)return;
- if(LV.cur&&LV.cur.box.isConnected){if(!LV.cur.on){LV.cur.on=true;LV.cur.t0=performance.now();if(LV.cur.ready)lvShow()}return}
- lvKill();var B=lvBox(el);el.style.transform="translate(0px,0px) scale(1)";el.style.clipPath="inset(0px)";var ov0=f.querySelector(".lvov");if(ov0)ov0.innerHTML="";var W=Math.round(B.W),H=Math.round(B.H),box=document.createElement("div");box.className="lv3 full k-"+((e.mo&&e.mo.kind)||"mol");
- box.style.left=B.l+"px";box.style.top=B.t+"px";box.style.width=W+"px";box.style.height=H+"px";
- box.innerHTML='<div class="lv3l">'+lvFmt(e.l)+'</div>';f.appendChild(box);
- var c=LV.cur={box:box,on:true,goal:0,g:0,t0:performance.now(),k:SHOW.k,W:W,H:H};
- lvLib().then(function(){if(LV.cur!==c||!box.isConnected)return;lvBuild(c,e.mo)}).catch(function(){})}
-function lvBuild(c,m){var T=window.THREE;if(!LV.ren){try{LV.ren=new T.WebGLRenderer({antialias:true,alpha:true,powerPreference:"low-power"});LV.ren.setClearColor(0,0);LV.ren.outputEncoding=T.sRGBEncoding}catch(x){LV.ren=false}}if(!LV.ren)return;
- var b;try{b=LV3D.build(T,m)}catch(x){return}c.b=b;var sc=new T.Scene();LV3D.lights(T,sc);var piv=new T.Group();piv.add(b.obj);sc.add(piv);
- var cam=new T.PerspectiveCamera(30,c.W/c.H,.1,5000),d=b.r*(b.fit||{atom:3.2,membrane:3.6,states:3.3,wave:3.4,mol:3.1,protein:3.6}[m.kind]||4.2)*(c.W<c.H*1.1?1.15:1);cam.position.set(0,d*(b.noSpin?.18:.28),d);cam.lookAt(0,0,0);
- var r=c.box.getBoundingClientRect(),pr=Math.min(window.devicePixelRatio||1,1.5),sx=r.width/c.W||1;LV.ren.setPixelRatio(pr*sx);LV.ren.setSize(c.W,c.H,false);
- var cv=LV.ren.domElement;cv.style.width="100%";cv.style.height="100%";c.box.insertBefore(cv,c.box.firstChild);c.sc=sc;c.cam=cam;c.piv=piv;c.ready=true;c.last=performance.now();c.d=d;if(c.on)lvShow()}
-function lvShow(){var c=LV.cur;if(!c)return;c.box.classList.add("in");c.t0=performance.now();if(!c.raf)lvLoop()}
-function lvLoop(){var c=LV.cur;if(!c||!c.box.isConnected||!c.ready){if(c)c.raf=0;return}c.raf=requestAnimationFrame(lvLoop);if(document.hidden)return;
+ var kind=lvKindOf(e),mode=e.mode==="side"?"side":"cover";
+ /* the same model kind kept alive from the previous slide: it flies to its new place */
+ if(LV.keep&&kind==="3d"){var K=LV.keep;LV.keep=null;var R0=lvPlace(f,el,mode);if(R0){if(!R0.side)lvCoverReset(f,el);lvAdopt(K,R0,e,id,key);return}lvDrop(K.c,true)}
+ /* two models in the same place, one after the other: a morph inside the same scene */
+ if(c&&!c.dead&&c.kind==="3d"&&kind==="3d"&&(c.e.mode==="side")===(mode==="side")&&c.shown&&c.box.isConnected){if(!c.side)lvCoverReset(f,el);lvMorph(c,e,id,key);return}
+ var prev=c;if(c&&!c.shown){prev=c.prev;c.prev=null;lvDrop(c,true)}
+ var R=lvPlace(f,el,mode);if(!R)return;if(!R.side)lvCoverReset(f,el);
+ var box=document.createElement("div"),n={box:box,id:id,key:key,kind:kind,e:e,on:true,goal:0,g:0,t0:performance.now(),k:SHOW.k,prev:prev,olds:[]};
+ box.innerHTML='<div class="lv3l">'+lvFmt(e.l||"")+'</div>';if(!e.l)box.firstChild.style.display="none";lvPut(n,R);LV.cur=n;
+ n.tmo=setTimeout(function(){if(!n.shown)lv3Fail(n)},2500);
+ if(kind==="3d")lvLib().then(function(){if(LV.cur!==n||n.dead||!box.isConnected)return;if(!lvBuild(n,e.mo))lv3Fail(n)}).catch(function(){lv3Fail(n)});
+ else lvPic2(n,e)}
+function lvSafeSvg(s){/* an inline drawing from the data, inert: no scripts, no event handlers, no outside links */
+ var t=document.createElement("template");t.innerHTML=String(s||"");var v=t.content.querySelector("svg");if(!v)return null;
+ [].slice.call(t.content.querySelectorAll("script,foreignObject,iframe,object,embed")).forEach(function(x){x.parentNode.removeChild(x)});
+ [].slice.call(v.querySelectorAll("*")).concat([v]).forEach(function(x){[].slice.call(x.attributes).forEach(function(a){var n=a.name.toLowerCase();if(/^on/.test(n)||(/href$/.test(n)&&!/^#/.test(a.value)))x.removeAttribute(a.name)})});
+ if(!v.getAttribute("viewBox")){var w=parseFloat(v.getAttribute("width")),h=parseFloat(v.getAttribute("height"));if(w&&h)v.setAttribute("viewBox","0 0 "+w+" "+h)}v.removeAttribute("width");v.removeAttribute("height");return v}
+function lvIDB(){/* the chapter picture bundles kept in this browser by the page loader (IndexedDB uamc_<course>, key a_<chapter>) */
+ if(LV.idb)return LV.idb;LV.idb=new Promise(function(ok){try{if(!indexedDB.databases){ok(null);return}indexedDB.databases().then(function(L){var d=(L||[]).filter(function(x){return /^uamc_/.test(x.name||"")})[0];if(!d){ok(null);return}
+  var r=indexedDB.open(d.name);r.onsuccess=function(){ok(r.result)};r.onerror=function(){ok(null)}}).catch(function(){ok(null)})}catch(x){ok(null)}});LV.idb.then(function(d){if(!d)LV.idb=null});return LV.idb}
+function lvImg(n){if(!n)return Promise.resolve(null);if(/^data:image\//.test(n))return Promise.resolve(n);LV.imgc=LV.imgc||{};if(LV.imgc[n])return Promise.resolve(LV.imgc[n]);
+ return lvIDB().then(function(db){if(!db)return null;return new Promise(function(ok){try{var q=db.transaction("kv").objectStore("kv").getAll();q.onsuccess=function(){var u=null;(q.result||[]).forEach(function(v){if(!u&&v&&v.map&&v.map[n])u=v.map[n]});if(u)LV.imgc[n]=u;ok(u)};q.onerror=function(){ok(null)}}catch(x){ok(null)}})}).catch(function(){return null})}
+function lvPic2(n,e){var g=document.createElement("div");g.className="lv3g";
+ if(e.svg){var v=lvSafeSvg(e.svg);if(!v){lv3Fail(n);return}g.appendChild(v);n.box.insertBefore(g,n.box.firstChild);requestAnimationFrame(function(){if(LV.cur===n)lvShown(n)});return}
+ lvImg(e.img).then(function(u){if(LV.cur!==n||n.dead)return;if(!u){lv3Fail(n);return}var im=new Image();im.alt="";im.onload=function(){if(LV.cur!==n||n.dead)return;g.appendChild(im);n.box.insertBefore(g,n.box.firstChild);requestAnimationFrame(function(){if(LV.cur===n)lvShown(n)})};im.onerror=function(){lv3Fail(n)};im.src=u})}
+function lvRen(c){var T=window.THREE;try{var cv=document.createElement("canvas"),gl=cv.getContext("webgl")||cv.getContext("experimental-webgl");if(!gl)return null;
+  var r=new T.WebGLRenderer({canvas:cv,context:gl,antialias:true,alpha:true,powerPreference:"low-power"});r.setClearColor(0,0);r.outputEncoding=T.sRGBEncoding;
+  cv.addEventListener("webglcontextlost",function(ev){ev.preventDefault();if(!r.mine)lv3Fail(c)},false);return r}catch(x){return null}}
+function lvFitD(b,m,c){return b.r*(b.fit||{atom:3.2,membrane:3.6,states:3.3,wave:3.4,mol:3.1,protein:3.6}[m.kind]||4.2)*(c.W<c.H*1.1?1.15:1)}
+function lvSize(c){var r=c.box.getBoundingClientRect(),pr=Math.min(window.devicePixelRatio||1,1.5),sx=r.width/c.W||1;c.ren.setPixelRatio(Math.max(1,pr*sx));c.ren.setSize(c.W,c.H,false);c.cam.aspect=c.W/c.H;c.cam.updateProjectionMatrix()}
+function lvBuild(c,m){var T=window.THREE;if(!T||!window.LV3D||typeof LV3D.build!=="function"||!m||LV.nogl)return false;
+ var ren=lvRen(c);if(!ren){LV.nogl=1;return false}c.ren=ren;
+ var b;try{b=LV3D.build(T,m);if(!b||!b.obj)return false;c.b=b;var sc=new T.Scene();LV3D.lights(T,sc);var piv=new T.Group();piv.add(b.obj);sc.add(piv);
+  var cam=new T.PerspectiveCamera(30,c.W/c.H,.1,5000);c.cam=cam;c.sc=sc;c.piv=piv;c.d=c.dGoal=lvFitD(b,m,c);c.ns=b.noSpin;lvSize(c)}catch(x){return false}
+ var cv=ren.domElement;cv.style.width="100%";cv.style.height="100%";c.box.insertBefore(cv,c.box.firstChild);c.ready=true;c.last=performance.now();c.grow=1;if(!c.raf)lvLoop(c);return true}
+function lvMorph(c,e,id,key){/* the old model shrinks and turns away while the new one grows in the same place */
+ var T=window.THREE,b;try{b=LV3D.build(T,e.mo)}catch(x){b=null}if(!b||!b.obj){(LV.skip=LV.skip||{})[id]=1;lv3Off();return}
+ var piv=new T.Group();piv.add(b.obj);c.sc.add(piv);c.olds.push({piv:c.piv,b:c.b,t0:performance.now(),ns:c.ns,y:c.piv.rotation.y});c.piv=piv;c.b=b;c.ns=b.noSpin;c.grow=0;c.g=c.goal=0;
+ c.dGoal=lvFitD(b,e.mo,c);c.e=e;c.id=id;c.key=key;c.k=SHOW.k;c.box.className=c.box.className.replace(/\bk-\S+/,"k-"+(e.mo.kind||"mol"));
+ var l=c.box.querySelector(".lv3l");if(l){l.style.display=e.l?"":"none";l.classList.remove("swap");void l.offsetWidth;l.innerHTML=lvFmt(e.l||"");l.classList.add("swap")}}
+function lvAdopt(K,R,e,id,key){/* a live model carried over from the last slide flies from where it was to its new place */
+ var c=K.c;LV.cur=c;c.dead=false;lvPut(c,R);try{lvSize(c)}catch(x){}var a=c.box.getBoundingClientRect(),o=K.r;
+ if(!LV.rm&&a.width&&o.width){var sx=o.width/a.width,sy=o.height/a.height;c.box.style.transition="none";c.box.style.transformOrigin="0 0";
+  var k=c.box.offsetParent?c.box.offsetParent.getBoundingClientRect().width/(c.box.offsetParent.offsetWidth||1):1;
+  c.box.style.transform="translate("+((o.left-a.left)/k)+"px,"+((o.top-a.top)/k)+"px) scale("+sx+","+sy+")";void c.box.offsetWidth;c.box.style.transition="";c.box.classList.add("fly");c.box.style.transform="";
+  setTimeout(function(){c.box.classList.remove("fly")},700)}
+ if(JSON.stringify(c.e.mo)!==JSON.stringify(e.mo))lvMorph(c,e,id,key);else{c.e=e;c.id=id;c.key=key;c.k=SHOW.k}
+ if(!c.raf)lvLoop(c)}
+function lvLoop(c){if(!c||!c.box.isConnected||!c.ready||c.deadGl){if(c)c.raf=0;return}c.raf=requestAnimationFrame(function(){lvLoop(c)});if(document.hidden)return;
  var n=performance.now(),dt=Math.min(.05,(n-c.last)/1000),t=(n-c.t0)/1000;c.last=n;c.T=(c.T||0)+dt;
- c.g+=(c.goal-c.g)*Math.min(1,dt*1.6);var e=Math.min(1,t/1.4),ez=1-Math.pow(1-e,3),sp=LV.rm?0:.22;
- c.piv.rotation.y=c.b.noSpin?Math.sin(c.T*.25)*(LV.rm?0:.16):c.T*sp+c.g*.9;c.piv.rotation.x=Math.sin(c.T*.3)*.06;var s=(c.on?.82+.18*ez:1)*(1+Math.min(c.g,3)*.09);c.piv.scale.setScalar(s);
- if(c.b.tick&&!LV.rm)try{c.b.tick(c.T,dt)}catch(x){}LV.ren.render(c.sc,c.cam)}
-/* background: faint geometric lines drifting slowly behind the slide (pure CSS / SVG, no script per frame) */
-var LVBG='<svg class="lvbg" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g class="lvg1"><polygon points="1040,40 1180,120 1180,280 1040,360 900,280 900,120"/><polygon points="1110,330 1200,382 1200,486 1110,538 1020,486 1020,382"/><circle cx="1180" cy="620" r="70"/></g><g class="lvg2"><polygon points="60,520 150,572 150,676 60,728 -30,676 -30,572"/><line x1="0" y1="300" x2="260" y2="720"/><circle cx="240" cy="560" r="26"/></g></svg>';
+ c.g+=(c.goal-c.g)*Math.min(1,dt*1.6);c.grow=Math.min(1,(c.grow||0)+dt/.9);c.d+=(c.dGoal-c.d)*Math.min(1,dt*3);var e=Math.min(1,t/1.4),ez=1-Math.pow(1-e,3),gz=1-Math.pow(1-c.grow,3),sp=LV.rm?0:.22;
+ try{c.cam.position.set(0,c.d*(c.ns?.18:.28),c.d);c.cam.lookAt(0,0,0);
+  c.piv.rotation.y=c.ns?Math.sin(c.T*.25)*(LV.rm?0:.16):c.T*sp+c.g*.9-(1-gz)*1.2;c.piv.rotation.x=Math.sin(c.T*.3)*.06;c.piv.scale.setScalar((.82+.18*ez)*(1+Math.min(c.g,3)*.09)*(LV.rm?1:Math.max(.001,gz)));
+  c.olds=c.olds.filter(function(o){var p=Math.min(1,(n-o.t0)/800);if(p>=1){c.sc.remove(o.piv);try{o.b.dispose()}catch(x){}return false}o.piv.scale.setScalar(Math.max(.001,Math.pow(1-p,2)));o.piv.rotation.y=o.y+p*1.6;return true});
+  if(c.b.tick&&!LV.rm)c.b.tick(c.T,dt);c.ren.render(c.sc,c.cam);
+  /* first frame really drawn: only now does the stage fade in */
+  if(!c.shown){var gl=c.ren.getContext();if(!gl||gl.isContextLost()){lv3Fail(c);return}lvShown(c)}}catch(x){lv3Fail(c)}}
+/* ---------- pictures: a slide whose picture has not arrived yet shows a soft shimmer in its frame; full screen asks for the pictures of
+   this section and the next one first, and decodes them ahead so stepping never shows an empty frame ---------- */
+var LVPIX=/^data:image\/gif;base64,R0lGODlhAQAB/;
+function lvWaiting(im){var s=im.getAttribute("src")||"";return !s||LVPIX.test(s)||!im.complete||im.naturalWidth<2}
+function lvSrc(x){if(!x||!x.img)return null;if(!LVPIX.test(x.img))return x.img;var t=x.tid&&typeof topicById==="function"?topicById(x.tid):null,o=null;
+ if(t&&t.slides)t.slides.forEach(function(y){if(!o&&y.img&&!LVPIX.test(y.img)&&lvTxt(y.title)===lvTxt(x.title))o=y.img});return o}
+function lvPics(){var shw=document.getElementById("shw");if(!shw||!SHOW)return;var f=shw.querySelector(".shwslide .sldf"),im=f&&f.querySelector(":scope > img"),x=SHOW.list[SHOW.k];
+ if(im){var u=lvSrc(x);if(u&&im.getAttribute("src")!==u){im.removeAttribute("loading");im.src=u}
+  f.classList.toggle("lvwait",lvWaiting(im));
+  if(!im._lvw){im._lvw=1;im.addEventListener("load",function(){if(lvWaiting(im))return;f.classList.remove("lvwait");im._lvg=null;if(SHOW&&LV.fig&&im.isConnected)setTimeout(function(){if(SHOW&&im.isConnected)lvFig(SHOW.st||0,true)},40)})}}
+ shw.querySelectorAll(".shwgl [data-go] img").forEach(function(g){var y=SHOW.list[+g.closest("[data-go]").dataset.go],u=lvSrc(y);if(u&&g.getAttribute("src")!==u)g.src=u});
+ /* this section's chapter and the next section's chapter first */
+ if(SHOW.kind==="t"&&window.UAMNEED&&typeof topicById==="function"){var t=topicById(S.tid),i=typeof TOPICS!=="undefined"?TOPICS.indexOf(t):-1,nx=i>=0?TOPICS[i+1]:null,a=[lvChap(t),nx&&lvChap(nx)].filter(function(v,j,A){return v&&A.indexOf(v)===j}),key=a.join(",");
+  if(key&&LV.need!==key){LV.need=key;try{UAMNEED(a)}catch(e){}}}
+ /* decode the pictures ahead (this deck, then the next section's slides) */
+ var L=SHOW.list.slice();if(SHOW.kind==="t"&&typeof TOPICS!=="undefined"){var t2=topicById(S.tid),n2=TOPICS[TOPICS.indexOf(t2)+1];if(n2&&n2.slides)L=L.concat(n2.slides)}
+ LV.pre=LV.pre||{};var n=0;L.forEach(function(y){var u=lvSrc(y);if(!u||LV.pre[u]||n>=60)return;n++;var g=new Image();g.decoding="async";g.src=u;LV.pre[u]=g;if(g.decode)g.decode().catch(function(){})})}
+document.addEventListener("uam-assets",function(){if(SHOW)try{lvPics()}catch(x){}});
+/* ---------- the figure card: real 3D perspective, a slow idle drift (CSS), a slightly different resting angle at every bullet and a
+   light pointer parallax; held flat while the pen or highlighter is in use or ink is on the slide, so ink stays where it was drawn ---------- */
+var LVAX=[-1.1,.8,-.5,1.3,-1.4,.6,1.0,-.8],LVAY=[1.4,-1.0,.7,-1.5,.9,-.5,1.2,-1.3];
+function lvFlat(){var shw=document.getElementById("shw");if(!shw||!SHOW)return false;var a=shwInk(),ink=false;a.forEach(function(s){if(s.ar===SHT.ar&&s.p.length)ink=true});
+ var fl=SHT.tool==="pen"||SHT.tool==="hl"||ink;shw.classList.toggle("lvflat",fl);return fl}
+function lvCard(){var shw=document.getElementById("shw"),f=shw&&shw.querySelector(".shwslide .sldf");if(!f)return;var fl=lvFlat();
+ if(!LV.fig||LV.rm||fl){f.style.transform="";return}var k=SHOW.k||0,st=SHOW.st||0,i=(k*5+st*3)%8,px=LV.px||0,py=LV.py||0;
+ f.style.transform="rotateX("+(LVAX[i]-py*1.5).toFixed(2)+"deg) rotateY("+(LVAY[i]+px*1.5).toFixed(2)+"deg)"}
+(function(){var raf=0,fine=!!(window.matchMedia&&matchMedia("(pointer:fine)").matches);
+ document.addEventListener("pointermove",function(e){if(!SHOW||!fine||e.pointerType!=="mouse"||!LV.fig||LV.rm)return;LV.px=Math.max(-1,Math.min(1,(e.clientX/window.innerWidth-.5)*2));LV.py=Math.max(-1,Math.min(1,(e.clientY/window.innerHeight-.5)*2));
+  if(!raf)raf=requestAnimationFrame(function(){raf=0;lvCard()})},{passive:true});
+ /* a drawing tool picked, ink added or cleared: flat or floating again */
+ document.addEventListener("click",function(e){if(SHOW&&e.target.closest&&e.target.closest("#shw [data-tl]"))setTimeout(lvCard,0)},true);
+ document.addEventListener("pointerdown",function(e){if(SHOW&&e.target.closest&&e.target.closest("#shw .shwink"))lvFlat()},true)})();
+/* ---------- the accent layer: designed, chemistry-flavoured shapes in the empty margins that move slowly (transform and opacity only):
+   a turning fused-ring lattice with an orbiting electron at the top right, a carbon chain with travelling particles in the footer,
+   a title underline that draws in, a small ring system under the bullets when there is room; section title slides get a richer
+   molecular network. Never behind text. ---------- */
+function lvHexPts(cx,cy,r){var p=[];for(var i=0;i<6;i++){var a=(i*60-90)*Math.PI/180;p.push([cx+r*Math.cos(a),cy+r*Math.sin(a)])}return p}
+function lvRing(cx,cy,r,dbl){var p=lvHexPts(cx,cy,r),h='<polygon points="'+p.map(function(q){return q[0].toFixed(1)+","+q[1].toFixed(1)}).join(" ")+'"/>';
+ if(dbl)[0,2,4].forEach(function(i){var a=p[i],b=p[(i+1)%6],k=.2,m=.8;var ax=a[0]+(cx-a[0])*k,ay=a[1]+(cy-a[1])*k,bx=b[0]+(cx-b[0])*k,by=b[1]+(cy-b[1])*k;
+  h+='<line x1="'+(ax+(bx-ax)*.15).toFixed(1)+'" y1="'+(ay+(by-ay)*.15).toFixed(1)+'" x2="'+(ax+(bx-ax)*m).toFixed(1)+'" y2="'+(ay+(by-ay)*m).toFixed(1)+'"/>'});return h}
+function lvLattice(r,cells,dots){/* fused rings (pointy-top hexagons) in a box centred on 0,0; cells as [col,row] on the hex grid */
+ var w=Math.sqrt(3)*r,h='',D=[];cells.forEach(function(c,i){var x=c[0]*w+(c[1]&1?w/2:0),y=c[1]*1.5*r;h+=lvRing(x,y,r,i===0);if(dots)D.push(lvHexPts(x,y,r))});
+ if(dots)D.forEach(function(p,i){[1,4].forEach(function(j){if((i+j)%3)h+='<circle class="lvn" cx="'+p[j][0].toFixed(1)+'" cy="'+p[j][1].toFixed(1)+'" r="'+(r*.12).toFixed(1)+'"/>'})});return h}
+function lvPart(cx,cy,r,cls){var w=Math.sqrt(3)*r;return '<i class="lvp'+(cls?' '+cls:'')+'" style="left:'+(cx-w/2).toFixed(1)+'px;top:'+(cy-r).toFixed(1)+'px;width:'+w.toFixed(1)+'px;height:'+(2*r)+'px"></i>'}
+function lvOrbit(cls,w,h,dur,rev){return '<div class="lvorb '+cls+'" style="width:'+w+'px;height:'+h+'px"><svg viewBox="0 0 '+w+' '+h+'"><ellipse cx="'+w/2+'" cy="'+h/2+'" rx="'+(w/2-2)+'" ry="'+(h/2-2)+'"/></svg><i class="lve" style="animation-duration:'+dur+'s'+(rev?';animation-direction:reverse':'')+'"></i></div>'}
+/* one accent layer for the whole full-screen session: it is moved from slide to slide (never rebuilt), its animations keep their phase
+   (a shared clock in --lvt), and its pieces glide to a slightly different place on every slide; on section title slides the pieces
+   form the large molecular network, on content slides they gather in the top right corner */
+function lvAccNode(){var B=lvLattice(58,[[0,0],[1,0],[0,1],[-1,1],[1,1],[0,2]],true),C=lvLattice(44,[[0,0],[1,0],[0,1],[1,-1]],true),w2=Math.sqrt(3)*58,d=document.createElement("div");
+ d.className="lvacc";d.setAttribute("aria-hidden","true");
+ d.innerHTML='<div class="lvpc" data-p="a" data-s="460" style="width:460px;height:460px"><div class="lvspin s2"><svg viewBox="-180 -180 460 460">'+B+'</svg>'+lvPart(180,180,58)+lvPart(180+w2,180,58,"d2")+'</div></div>'+
+  '<div class="lvpc" data-p="b" data-s="360" style="width:360px;height:360px"><div class="lvspin s3"><svg viewBox="-140 -140 360 360">'+C+'</svg>'+lvPart(140,140,44,"d3")+'</div></div>'+
+  '<div class="lvpc lvat" data-p="c" data-s="210" style="width:210px;height:210px"><i class="lvnuc"></i>'+lvOrbit("lvo2",210,78,6)+lvOrbit("lvo3",210,78,8.5,1)+lvOrbit("lvo4",210,78,11)+'</div>'+
+  '<div class="lvpc" data-p="d" data-s="200" style="width:200px;height:200px"><div class="lvspin s4"><svg viewBox="-60 -70 200 200">'+lvLattice(30,[[0,0],[1,0]],true)+'</svg>'+lvPart(60,70,30)+'</div></div>'+
+  '<div class="lva lvft"><svg viewBox="0 0 1000 40" preserveAspectRatio="none">'+lvChain()+'</svg><i class="lvq"></i><i class="lvq lvq2"></i></div>';return d}
+function lvAccPos(mode,W,k){var dx=(k*37)%17-8,dy=(k*23)%11-5,r=((k*13)%7-3)*4;
+ if(mode==="dv")return {a:[60+dx,60+dy,1,.42,r],b:[W+60-dy,50+dx,1,.38,-r],c:[W-169,531,1,.6,0],d:[144+dy,530,1,.4,r]};
+ return {a:[W-30+dx*.6,26+dy*.6,.5,.5,r],b:[W+240,-180,.6,0,0],c:[W-150+dx,58+dy*.4,.5,.55,r],d:[120,820,.7,0,0]}}
+function lvAccSet(L,s){L.classList.toggle("dv",s.mode==="dv");var P=lvAccPos(s.mode,s.W,s.k);[].forEach.call(L.querySelectorAll(".lvpc"),function(p){var q=P[p.dataset.p],z=+p.dataset.s;
+ p.style.transform="translate("+(q[0]-z/2).toFixed(1)+"px,"+(q[1]-z/2).toFixed(1)+"px) rotate("+q[4]+"deg) scale("+q[2]+")";p.style.opacity=s.hide&&s.hide[p.dataset.p]?0:q[3]})}
+function lvAccHide(sl,s){/* a piece never sits behind words: its resting box is compared with the title, section title and footer text */
+ var had=sl.classList.contains("lvmeasure"),H={};sl.classList.add("lvmeasure");
+ try{var q=sl.getBoundingClientRect(),kq=q.width/(sl.offsetWidth||1)||1,P=lvAccPos(s.mode,s.W,s.k),m=22;
+  var R=[].slice.call(sl.querySelectorAll(".sldh,.sldivin,.sldft span,.sldn")).map(function(e){var g=document.createRange();g.selectNodeContents(e);var r=g.getBoundingClientRect();return {l:(r.left-q.left)/kq-sl.clientLeft,t:(r.top-q.top)/kq-sl.clientTop,r:(r.right-q.left)/kq-sl.clientLeft,b:(r.bottom-q.top)/kq-sl.clientTop,w:r.width}}).filter(function(r){return r.w>0});
+  [].forEach.call(sl.querySelectorAll(".lvacc .lvpc"),function(p){var c=P[p.dataset.p],h=+p.dataset.s*c[2]/2*(p.dataset.p==="a"?.8:1);R.forEach(function(r){if(r.l<c[0]+h+m&&r.r>c[0]-h-m&&r.t<c[1]+h+m&&r.b>c[1]-h-m)H[p.dataset.p]=1})})}finally{if(!had)sl.classList.remove("lvmeasure")}return H}
+function lvAccAttach(sl){var L=LV.acc;if(!L){L=LV.acc=lvAccNode();LV.at0=performance.now()}
+ var s={mode:sl.classList.contains("sldiv")?"dv":"lt",W:sl.clientWidth||1280,k:SHOW.k||0},p=LV.accS;
+ L.style.setProperty("--lvt",(-(performance.now()-LV.at0)/1000).toFixed(3)+"s");if(L.parentNode!==sl)sl.insertBefore(L,sl.firstChild);
+ if(p&&!LV.rm){L.classList.add("lvnt");lvAccSet(L,p);void L.offsetWidth;L.classList.remove("lvnt")}
+ s.hide=lvAccHide(sl,s);lvAccSet(L,s);LV.accS=s}
+function lvChain(){var p=[];for(var i=0;i<=24;i++)p.push((i*1000/24).toFixed(1)+","+(i%2?30:10));return '<polyline points="'+p.join(" ")+'"/><circle class="lvn" cx="'+(7*1000/24).toFixed(1)+'" cy="30" r="3.6"/><circle class="lvn" cx="'+(16*1000/24).toFixed(1)+'" cy="10" r="3.6"/>'}
+function lvClear(sl){if(LV.acc&&LV.acc.parentNode===sl&&LV.accS){LV.accS.hide=lvAccHide(sl,LV.accS);lvAccSet(LV.acc,LV.accS)}}
+function lvUnder(){}
 function lvSetup(){var shw=document.getElementById("shw");if(!shw||!SHOW)return;
  if(typeof showMove==="function"&&!showMove._lv){var om=showMove;showMove=function(d){if((LV.bul||LV.fig)&&SHOW&&!SHOW.grid){var n=lvItems().length,st=SHOW.st||0;
    if(d>0&&st<n-1){SHOW.st=st+1;lvStep();return}if(d<0&&st>0){SHOW.st=st-1;lvStep();return}}LV.dir=d;om(d)};showMove._lv=1}
- var on=LV.bul||LV.fig;shw.classList.toggle("live",on);shw.classList.toggle("lvb",LV.bul);shw.classList.toggle("lvfg",LV.fig);shw.querySelectorAll("[data-lv]").forEach(function(b){b.classList.toggle("on",b.dataset.lv==="b"?LV.bul:LV.fig)});
- var x=SHOW.list[SHOW.k],same=LV.lk===x;LV.lk=x;
- if(LV.cur&&!(LV.cur.k===SHOW.k&&same&&LV.cur.box.isConnected))lvKill();
- if(!on){LV.dir=0;return}
- var sl=shw.querySelector(".shwslide .sld");if(sl&&!sl.querySelector(".lvbg"))sl.insertAdjacentHTML("afterbegin",LVBG);
+ try{lvPics()}catch(x){}
+ var on=LV.bul||LV.fig;shw.classList.toggle("live",on);shw.classList.toggle("lvb",LV.bul);shw.classList.toggle("lvfg",LV.fig&&!LV.rm);shw.querySelectorAll("[data-lv]").forEach(function(b){b.classList.toggle("on",b.dataset.lv==="b"?LV.bul:LV.fig)});
+ var x=SHOW.list[SHOW.k],same=LV.lk===x;LV.lk=x;if(!same)LV.skip=null;
+ if(!same)lvStopAll();else if(LV.cur&&!LV.cur.box.isConnected)lvKill();
+ if(!on){LV.dir=0;lvFlat();if(LV.keep){lvDrop(LV.keep.c,true);LV.keep=null}return}
+ var sl=shw.querySelector(".shwslide > .sld");if(sl)try{lvAccAttach(sl)}catch(e){}
  var n=lvItems().length;if(!same)SHOW.st=LV.dir<0?Math.max(0,n-1):0;else SHOW.st=Math.min(SHOW.st||0,Math.max(0,n-1));LV.dir=0;
- if(sl&&!same)sl.classList.add("lvin");
- if(SHOW.kind==="t")lvData().catch(function(){});lvData().then(function(d){if(d&&d.m&&!LV.rm)setTimeout(function(){lvLib()},400)}).catch(function(){});
+ /* entrance: one of three choreographies, chosen from the slide number so consecutive slides differ */
+ if(sl&&!same)sl.classList.add("lvin","lvv"+(SHOW.k%3));
+ if(sl&&!same){clearTimeout(LV.clT);LV.clT=setTimeout(function(){if(sl.isConnected)try{lvClear(sl)}catch(x){}},700)}
+ if(SHOW.kind==="t")lvData().then(function(d){if(d&&d.m&&!LV.rm&&LV.fig)setTimeout(function(){lvLib().catch(function(){})},400)}).catch(function(){});
  lvStep(true)}
 document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("#shw [data-lv]");if(!b||!SHOW)return;e.stopPropagation();b.blur();
  if(b.dataset.lv==="b")LV.bul=!LV.bul;else LV.fig=!LV.fig;try{localStorage.setItem("uamsl:lvb",LV.bul?"1":"0");localStorage.setItem("uamsl:lvf",LV.fig?"1":"0")}catch(x){}LV.lk=null;lvKill();showDraw()},true);
+/* ---------- between slides (phase 2): the slide that is left stays on top for a moment and eases out in the direction of travel while the
+   new one eases in from the other side (about 0.4 s; a key pressed meanwhile simply draws the next slide). A live 3D model whose kind
+   returns on the next slide of the same section is carried over and flies to its new place instead of being rebuilt. ---------- */
+function lvStopAll(){var A=(LV.outs||[]).concat(LV.cur?[LV.cur]:[]);LV.cur=null;LV.outs=[];A.forEach(function(c){if(c.raf)cancelAnimationFrame(c.raf);c.raf=0;c.ready=false;clearTimeout(c.tmo);setTimeout(function(){c.shown=false;lvDrop(c,true)},520)})}
+function lvKeep(back){var c=LV.cur;if(!c||c.dead||c.kind!=="3d"||!c.shown||!c.ready||!c.box.isConnected||S.tid!==LV.ltid)return;var f=lvChap(),d=LV.dd&&LV.dd[f],x=SHOW.list[SHOW.k];if(!d||!x||x.div||x.ov||x.ttl)return;
+ var key=S.tid+"|"+lvTxt(x.title),L=lvList(d,key),n=(x.bullets||[]).length,i=lvPick(L,back?Math.max(0,n-1):0);if(i<0||!L[i].mo||!c.e.mo||L[i].mo.kind!==c.e.mo.kind||(LV.skip&&LV.skip[key+"#"+i]))return;
+ LV.keep={c:c,r:c.box.getBoundingClientRect()};LV.cur=null;if(c.raf)cancelAnimationFrame(c.raf);c.raf=0;if(c.prev){lvDrop(c.prev,true);c.prev=null}c.box.parentNode.removeChild(c.box)}
+if(typeof showDraw==="function"&&!showDraw._lv){(function(o){showDraw=function(){var shw=document.getElementById("shw"),os=shw&&SHOW?shw.querySelector(".shwslide > .sld:not(.lvghost)"):null,x=SHOW&&SHOW.list[SHOW.k],
+  moved=!!(os&&x&&LV.lk&&x!==LV.lk),live=!!(SHOW&&(LV.bul||LV.fig)&&!LV.rm&&!SHOW.grid&&shw.classList.contains("live")),back=false;
+  if(moved){if(S.tid===LV.ltid)back=SHOW.k<LV.lkk;else if(typeof TOPICS!=="undefined"&&typeof topicById==="function")back=TOPICS.indexOf(topicById(S.tid))<TOPICS.indexOf(topicById(LV.ltid))}
+  if(moved&&live&&LV.fig)try{lvKeep(back)}catch(e){LV.keep=null}
+  var r=o.apply(this,arguments);
+  if(moved&&live)try{var ns=shw.querySelector(".shwslide"),nsl=ns&&ns.querySelector(".sld");if(nsl&&nsl!==os){os.classList.remove("lvin","lvv0","lvv1","lvv2","lvfw","lvbk");os.classList.add("lvghost",back?"lvgb":"lvgf");
+    ns.insertBefore(os,ns.querySelector(".shwink"));nsl.classList.add(back?"lvbk":"lvfw");setTimeout(function(){if(os.parentNode)os.parentNode.removeChild(os)},360)}}catch(e){}
+  if(SHOW){LV.lkk=SHOW.k;LV.ltid=S.tid}return r};showDraw._lv=1})(showDraw)}
 /* the slide fitter measures the figure: it must see it without the live zoom and outlines */
 if(typeof sldShrink==="function"&&!sldShrink._lv){(function(o){sldShrink=function(sl){var z=sl?[].slice.call(sl.querySelectorAll(".lvzf")):[],v=sl?[].slice.call(sl.querySelectorAll(".lvov,.lv3")):[],keep=z.map(function(e){return [e.style.transform,e.style.clipPath,e.style.transition]});
  z.forEach(function(e){e.style.transition="none";e.style.transform="none";e.style.clipPath="none"});v.forEach(function(e){e.style.display="none"});if(sl)sl.classList.add("lvmeasure");
- try{var r=o.apply(this,arguments);z.forEach(function(e){e._lvg=null;try{lvGeo(e)}catch(x){}});return r}finally{z.forEach(function(e,i){e.style.transform=keep[i][0];e.style.clipPath=keep[i][1];void e.offsetWidth;e.style.transition=keep[i][2]});v.forEach(function(e){e.style.display=""});if(sl)sl.classList.remove("lvmeasure");if(sl&&LV.fig&&SHOW&&sl.closest&&sl.closest("#shw")){clearTimeout(LV.rf);LV.rf=setTimeout(function(){if(SHOW&&LV.fig)lvFig(SHOW.st||0,true)},30)}}};sldShrink._lv=1})(sldShrink)}
+ try{var r=o.apply(this,arguments);z.forEach(function(e){e._lvg=null;try{lvGeo(e)}catch(x){}});return r}finally{z.forEach(function(e,i){e.style.transform=keep[i][0];e.style.clipPath=keep[i][1];void e.offsetWidth;e.style.transition=keep[i][2]});v.forEach(function(e){e.style.display=""});if(sl)sl.classList.remove("lvmeasure");if(sl&&SHOW&&sl.closest&&sl.closest("#shw")){clearTimeout(LV.rf);LV.rf=setTimeout(function(){if(!SHOW)return;try{lvPics()}catch(x){}if(sl.isConnected&&sl.querySelector(".lvacc"))try{lvUnder(sl);lvClear(sl)}catch(x){}if(LV.fig)lvFig(SHOW.st||0,true)},30)}}};sldShrink._lv=1})(sldShrink)}
 function lvReserve(sl,px){/* make the bullets a little smaller so a 3D card of px fits under them (live mode only) */
  var b=sl.querySelector(".sldb"),ul=b&&b.querySelector(":scope > ul,:scope > ol");if(!ul||!ul.children.length)return false;var la=ul.children[ul.children.length-1],k=b.getBoundingClientRect().height/(b.offsetHeight||1)||1,fs=parseFloat(getComputedStyle(ul).fontSize),n=0;
  ul.style.alignSelf="start";function room(){return (b.getBoundingClientRect().bottom-la.getBoundingClientRect().bottom)/k}
  while(room()<px&&fs>21&&n++<30){fs-=1;ul.style.setProperty("font-size",fs+"px","important")}return room()>=px}
 
+/* full screen is scaled with CSS zoom where the browser supports it the standard way (Chrome 128+, current Safari and Firefox): the
+   slide is then laid out and drawn at the screen's own resolution, so the tilted picture card and its text stay sharp (a scale()
+   transform made the browser draw the 3D card at slide size and enlarge it). Elsewhere the old scale() transform stays. */
+var SHZ=null;function shwZoomOK(){if(SHZ===null){SHZ=false;try{var d=document.createElement("div");d.style.cssText="position:absolute;left:-9999px;top:0;width:10px;height:10px;zoom:2";document.body.appendChild(d);SHZ=Math.abs(d.getBoundingClientRect().width-20)<.5&&d.offsetWidth===10;d.parentNode.removeChild(d)}catch(e){SHZ=false}}return SHZ}
+if(typeof showFit==="function"&&!showFit._z){(function(o){showFit=function(){var r=o.apply(this,arguments),shw=document.getElementById("shw"),el=shw&&shw.querySelector(".shwslide");
+  if(el&&shwZoomOK()){var sc=Math.min(window.innerWidth/(typeof shwW==="function"?shwW():1280),window.innerHeight/720);el.style.zoom=sc;shw.classList.add("lvzoom")}return r};showFit._z=1})(showFit);
+ window.addEventListener("resize",function(){if(SHOW)showFit()})}
 /* phone / portrait full screen: keep the arrows and the control bar right under the slide, not at the bottom of the screen */
 (function(){function place(){var shw=document.getElementById("shw");if(!shw)return;var sl=shw.querySelector(".shwslide"),nv=shw.querySelector(".shwnav"),bar=shw.querySelector(".shwbar");if(!sl)return;
   var r=sl.getBoundingClientRect(),q=shw.getBoundingClientRect(),gap=q.bottom-r.bottom,y=r.bottom-q.top;
